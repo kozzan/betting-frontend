@@ -8,16 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { formatCents, getErrorMessage } from "@/lib/format";
-import type { WalletBalance } from "@/types/orders";
+import { walletFetcher } from "@/lib/fetchers";
 import type { Transaction } from "@/types/wallet";
 import type { ApiResponse, PagedResponse } from "@/types/markets";
-
-async function walletFetcher(url: string): Promise<WalletBalance> {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Wallet fetch failed: ${res.status}`);
-  const json: ApiResponse<WalletBalance> = await res.json();
-  return json.data;
-}
 
 async function transactionsFetcher(url: string): Promise<PagedResponse<Transaction>> {
   const res = await fetch(url);
@@ -109,8 +102,8 @@ export function WalletPageClient() {
       return;
     }
     toast.success("Deposit successful");
-    mutateWallet().catch(() => {});
-    mutateTx().catch(() => {});
+    mutateWallet().catch((e: unknown) => console.error("Wallet revalidation failed", e));
+    mutateTx().catch((e: unknown) => console.error("Transactions revalidation failed", e));
   }
 
   async function handleWithdraw(amountCents: number) {
@@ -124,8 +117,8 @@ export function WalletPageClient() {
       return;
     }
     toast.success("Withdrawal successful");
-    mutateWallet().catch(() => {});
-    mutateTx().catch(() => {});
+    mutateWallet().catch((e: unknown) => console.error("Wallet revalidation failed", e));
+    mutateTx().catch((e: unknown) => console.error("Transactions revalidation failed", e));
   }
 
   return (
@@ -182,7 +175,7 @@ export function WalletPageClient() {
           <p className="py-12 text-center text-muted-foreground text-sm">No transactions yet.</p>
         ) : (
           <>
-            <table className="w-full text-sm">
+            <table className="w-full text-sm" aria-label="Transaction history">
               <thead className="bg-muted/50">
                 <tr>
                   <th className="text-left px-4 py-3 font-medium">Type</th>
@@ -199,6 +192,7 @@ export function WalletPageClient() {
                           tx.type === "DEPOSIT" ? "text-emerald-600" : "text-red-600"
                         }`}
                       >
+                        {tx.type === "DEPOSIT" ? "+ " : "− "}
                         {tx.type}
                       </span>
                     </td>

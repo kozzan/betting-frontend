@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +15,7 @@ interface ProfilePageClientProps {
 }
 
 export function ProfilePageClient({ profile }: ProfilePageClientProps) {
+  const router = useRouter();
   const [username, setUsername] = useState(profile.username);
   const [savingUsername, setSavingUsername] = useState(false);
 
@@ -39,6 +41,7 @@ export function ProfilePageClient({ profile }: ProfilePageClientProps) {
       const json: ApiResponse<Profile> = await res.json();
       setUsername(json.data.username);
       toast.success("Username updated");
+      router.refresh();
     } finally {
       setSavingUsername(false);
     }

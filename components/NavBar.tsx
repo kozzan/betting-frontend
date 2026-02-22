@@ -7,8 +7,7 @@ import useSWR from "swr";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { formatCents } from "@/lib/format";
-import type { WalletBalance } from "@/types/orders";
-import type { ApiResponse } from "@/types/markets";
+import { walletFetcher } from "@/lib/fetchers";
 
 const NAV_LINKS = [
   { href: "/app/markets", label: "Markets" },
@@ -17,13 +16,6 @@ const NAV_LINKS = [
   { href: "/app/wallet", label: "Wallet" },
   { href: "/app/profile", label: "Profile" },
 ];
-
-async function walletFetcher(url: string): Promise<WalletBalance> {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Wallet fetch failed: ${res.status}`);
-  const json: ApiResponse<WalletBalance> = await res.json();
-  return json.data;
-}
 
 interface NavBarProps {
   readonly username?: string;
