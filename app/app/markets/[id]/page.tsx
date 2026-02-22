@@ -5,6 +5,7 @@ import { apiRequest } from "@/lib/api";
 import type { ApiResponse, Market } from "@/types/markets";
 import { Badge } from "@/components/ui/badge";
 import { OrderBook } from "@/components/markets/OrderBook";
+import { PlaceOrderPanel } from "@/components/orders/PlaceOrderPanel";
 
 interface PageProps {
   readonly params: Promise<{ id: string }>;
@@ -107,8 +108,18 @@ export default async function MarketDetailPage({ params }: PageProps) {
           </div>
         )}
 
-        {/* Order book */}
-        <OrderBook marketId={market.id} />
+        {/* Trading panel + Order book */}
+        <div className="grid gap-4 lg:grid-cols-2">
+          {market.status === "OPEN" && (
+            <PlaceOrderPanel
+              marketId={market.id}
+              orderBookKey={`/api/markets/${market.id}/orders`}
+            />
+          )}
+          <div className={market.status === "OPEN" ? "" : "lg:col-span-2"}>
+            <OrderBook marketId={market.id} />
+          </div>
+        </div>
       </div>
     </div>
   );
