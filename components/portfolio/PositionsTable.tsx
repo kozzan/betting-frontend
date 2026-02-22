@@ -5,6 +5,7 @@ import useSWR from "swr";
 import { Badge } from "@/components/ui/badge";
 import type { Position } from "@/types/positions";
 import type { ApiResponse, OrderBook } from "@/types/markets";
+import { formatCents } from "@/lib/format";
 
 interface PositionsTableProps {
   readonly positions: Position[];
@@ -12,21 +13,9 @@ interface PositionsTableProps {
 
 async function orderBookFetcher(url: string): Promise<OrderBook> {
   const res = await fetch(url);
-  if (!res.ok) throw new Error("failed");
+  if (!res.ok) throw new Error(`Order book fetch failed: ${res.status} ${res.statusText} (${url})`);
   const json: ApiResponse<OrderBook> = await res.json();
   return json.data;
-}
-
-function formatCents(cents: number, signed = false): string {
-  const dollars = cents / 100;
-  const formatted = new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  }).format(Math.abs(dollars));
-  if (!signed) return formatted;
-  if (cents > 0) return `+${formatted}`;
-  if (cents < 0) return `-${formatted}`;
-  return formatted;
 }
 
 function UnrealisedPnl({
@@ -35,7 +24,7 @@ function UnrealisedPnl({
   readonly position: Position;
 }) {
   const { data: book } = useSWR(
-    `/api/markets/${position.marketId}/orders`,
+    position.quantity > 0 ? `/api/markets/${position.marketId}/orders` : null,
     orderBookFetcher,
     { refreshInterval: 30_000 }
   );
