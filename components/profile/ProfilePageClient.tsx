@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { getErrorMessage } from "@/lib/format";
 import type { Profile } from "@/types/profile";
 import type { ApiResponse } from "@/types/markets";
 
@@ -32,14 +33,7 @@ export function ProfilePageClient({ profile }: ProfilePageClientProps) {
         body: JSON.stringify({ username: trimmed }),
       });
       if (!res.ok) {
-        let message = `Error ${res.status}`;
-        try {
-          const err = await res.json();
-          message = err?.message ?? err?.error ?? message;
-        } catch {
-          // ignore parse error
-        }
-        toast.error(message);
+        toast.error(await getErrorMessage(res));
         return;
       }
       const json: ApiResponse<Profile> = await res.json();
@@ -61,14 +55,7 @@ export function ProfilePageClient({ profile }: ProfilePageClientProps) {
         body: JSON.stringify({ currentPassword, newPassword }),
       });
       if (!res.ok) {
-        let message = `Error ${res.status}`;
-        try {
-          const err = await res.json();
-          message = err?.message ?? err?.error ?? message;
-        } catch {
-          // ignore parse error
-        }
-        toast.error(message);
+        toast.error(await getErrorMessage(res));
         return;
       }
       toast.success("Password changed");

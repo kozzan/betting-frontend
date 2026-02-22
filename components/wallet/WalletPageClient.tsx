@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { formatCents } from "@/lib/format";
+import { formatCents, getErrorMessage } from "@/lib/format";
 import type { WalletBalance } from "@/types/orders";
 import type { Transaction } from "@/types/wallet";
 import type { ApiResponse, PagedResponse } from "@/types/markets";
@@ -105,14 +105,7 @@ export function WalletPageClient() {
       body: JSON.stringify({ amountCents }),
     });
     if (!res.ok) {
-      let message = `Error ${res.status}`;
-      try {
-        const err = await res.json();
-        message = err?.message ?? err?.error ?? message;
-      } catch {
-        // ignore parse error
-      }
-      toast.error(message);
+      toast.error(await getErrorMessage(res));
       return;
     }
     toast.success("Deposit successful");
@@ -127,14 +120,7 @@ export function WalletPageClient() {
       body: JSON.stringify({ amountCents }),
     });
     if (!res.ok) {
-      let message = `Error ${res.status}`;
-      try {
-        const err = await res.json();
-        message = err?.message ?? err?.error ?? message;
-      } catch {
-        // ignore parse error
-      }
-      toast.error(message);
+      toast.error(await getErrorMessage(res));
       return;
     }
     toast.success("Withdrawal successful");

@@ -1,20 +1,12 @@
-import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
+import { buildAuthHeaders } from "@/lib/proxy";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
-
-async function buildHeaders(): Promise<HeadersInit> {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("access_token")?.value;
-  const headers: HeadersInit = { "Content-Type": "application/json" };
-  if (token) headers["Authorization"] = `Bearer ${token}`;
-  return headers;
-}
 
 export async function GET() {
   try {
     const res = await fetch(`${API_URL}/api/v1/me`, {
-      headers: await buildHeaders(),
+      headers: await buildAuthHeaders(),
       next: { revalidate: 0 },
     });
     const body = await res.text();
@@ -32,7 +24,7 @@ export async function PATCH(req: NextRequest) {
     const body = await req.text();
     const res = await fetch(`${API_URL}/api/v1/me`, {
       method: "PATCH",
-      headers: await buildHeaders(),
+      headers: await buildAuthHeaders(),
       body,
       next: { revalidate: 0 },
     });
