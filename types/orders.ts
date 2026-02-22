@@ -1,7 +1,4 @@
-export interface ApiResponse<T> {
-  data: T;
-  meta: { requestId: string; timestamp: string };
-}
+export type { ApiResponse } from "./markets";
 
 export type OrderSide = "YES" | "NO";
 export type OrderAction = "BUY" | "SELL";

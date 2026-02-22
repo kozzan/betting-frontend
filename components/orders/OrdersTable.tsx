@@ -105,16 +105,7 @@ function CancelButton({
   );
 }
 
-export function OrdersTable({ orders: initialOrders, onCancelled }: OrdersTableProps) {
-  const [orders, setOrders] = useState(initialOrders);
-
-  function handleCancelled(id: string) {
-    setOrders((prev) =>
-      prev.map((o) => (o.id === id ? { ...o, status: "CANCELLED" as OrderStatus } : o))
-    );
-    onCancelled(id);
-  }
-
+export function OrdersTable({ orders, onCancelled }: OrdersTableProps) {
   if (orders.length === 0) {
     return (
       <p className="py-12 text-center text-muted-foreground text-sm">
@@ -194,7 +185,7 @@ export function OrdersTable({ orders: initialOrders, onCancelled }: OrdersTableP
                   {isActive && (
                     <CancelButton
                       orderId={order.id}
-                      onCancelled={handleCancelled}
+                      onCancelled={onCancelled}
                     />
                   )}
                 </td>

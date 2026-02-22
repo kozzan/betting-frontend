@@ -111,10 +111,7 @@ export default async function MarketDetailPage({ params }: PageProps) {
         {/* Trading panel + Order book */}
         <div className="grid gap-4 lg:grid-cols-2">
           {market.status === "OPEN" && (
-            <PlaceOrderPanel
-              marketId={market.id}
-              orderBookKey={`/api/markets/${market.id}/orders`}
-            />
+            <PlaceOrderPanel marketId={market.id} />
           )}
           <div className={market.status === "OPEN" ? "" : "lg:col-span-2"}>
             <OrderBook marketId={market.id} />

@@ -6,11 +6,10 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { ApiResponse, WalletBalance, Order, OrderAction, OrderSide } from "@/types/orders";
+import type { ApiResponse, WalletBalance, Order, OrderAction, OrderSide, OrderStatus } from "@/types/orders";
 
 interface PlaceOrderPanelProps {
   readonly marketId: string;
-  readonly orderBookKey: string;
 }
 
 async function walletFetcher(url: string): Promise<WalletBalance> {
@@ -24,7 +23,13 @@ function formatCents(cents: number): string {
   return `$${(cents / 100).toFixed(2)}`;
 }
 
-export function PlaceOrderPanel({ marketId, orderBookKey }: PlaceOrderPanelProps) {
+function orderStatusMessage(status: OrderStatus): string {
+  if (status === "FILLED") return "Fully filled";
+  if (status === "PARTIALLY_FILLED") return "Partially filled";
+  return "Open";
+}
+
+export function PlaceOrderPanel({ marketId }: PlaceOrderPanelProps) {
   const [side, setSide] = useState<OrderSide>("YES");
   const [action, setAction] = useState<OrderAction>("BUY");
   const [price, setPrice] = useState("");
@@ -75,18 +80,11 @@ export function PlaceOrderPanel({ marketId, orderBookKey }: PlaceOrderPanelProps
 
       const json: ApiResponse<Order> = await res.json();
       const order = json.data;
-      toast.success(
-        `Order placed — ${order.status === "FILLED" ? "fully filled!" : order.status === "PARTIALLY_FILLED" ? "partially filled" : "open"}`
-      );
+      toast.success(`Order placed — ${orderStatusMessage(order.status)}`);
 
       setPrice("");
       setQuantity("");
       void mutateWallet();
-      // Trigger order book refresh
-      if (typeof window !== "undefined") {
-        const event = new CustomEvent("orderbook-refresh", { detail: { key: orderBookKey } });
-        window.dispatchEvent(event);
-      }
     } catch {
       toast.error("Failed to place order. Please try again.");
     } finally {
@@ -169,6 +167,7 @@ export function PlaceOrderPanel({ marketId, orderBookKey }: PlaceOrderPanelProps
                 type="number"
                 min={1}
                 max={99}
+                step={1}
                 placeholder="e.g. 65"
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
@@ -189,6 +188,7 @@ export function PlaceOrderPanel({ marketId, orderBookKey }: PlaceOrderPanelProps
               id="quantity"
               type="number"
               min={1}
+              step={1}
               placeholder="e.g. 10"
               value={quantity}
               onChange={(e) => setQuantity(e.target.value)}
