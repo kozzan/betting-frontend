@@ -42,17 +42,13 @@ export function PlaceOrderPanel({ marketId }: PlaceOrderPanelProps) {
     { refreshInterval: 30_000 }
   );
 
-  const priceCents = parseInt(price, 10);
-  const qty = parseInt(quantity, 10);
-  const validPrice = !isNaN(priceCents) && priceCents >= 1 && priceCents <= 99;
-  const validQty = !isNaN(qty) && qty >= 1;
+  const priceCents = Number.parseInt(price, 10);
+  const qty = Number.parseInt(quantity, 10);
+  const validPrice = !Number.isNaN(priceCents) && priceCents >= 1 && priceCents <= 99;
+  const validQty = !Number.isNaN(qty) && qty >= 1;
 
-  const estimatedCents =
-    validPrice && validQty
-      ? action === "BUY"
-        ? priceCents * qty
-        : (100 - priceCents) * qty
-      : null;
+  const rawEstimate = action === "BUY" ? priceCents * qty : (100 - priceCents) * qty;
+  const estimatedCents = validPrice && validQty ? rawEstimate : null;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -84,7 +80,7 @@ export function PlaceOrderPanel({ marketId }: PlaceOrderPanelProps) {
 
       setPrice("");
       setQuantity("");
-      void mutateWallet();
+      mutateWallet().catch(() => {});
     } catch {
       toast.error("Failed to place order. Please try again.");
     } finally {
@@ -114,22 +110,22 @@ export function PlaceOrderPanel({ marketId }: PlaceOrderPanelProps) {
               Outcome
             </Label>
             <div className="grid grid-cols-2 gap-1 p-1 rounded-md bg-muted">
-              {(["YES", "NO"] as OrderSide[]).map((s) => (
-                <button
-                  key={s}
-                  type="button"
-                  onClick={() => setSide(s)}
-                  className={`py-1.5 rounded text-sm font-medium transition-colors ${
-                    side === s
-                      ? s === "YES"
-                        ? "bg-emerald-600 text-white shadow-sm"
-                        : "bg-red-600 text-white shadow-sm"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {s}
-                </button>
-              ))}
+              {(["YES", "NO"] as OrderSide[]).map((s) => {
+                const activeClass = s === "YES"
+                  ? "bg-emerald-600 text-white shadow-sm"
+                  : "bg-red-600 text-white shadow-sm";
+                const sideClass = side === s ? activeClass : "text-muted-foreground hover:text-foreground";
+                return (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => setSide(s)}
+                    className={`py-1.5 rounded text-sm font-medium transition-colors ${sideClass}`}
+                  >
+                    {s}
+                  </button>
+                );
+              })}
             </div>
           </div>
 

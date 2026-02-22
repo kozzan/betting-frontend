@@ -14,9 +14,10 @@ async function authHeaders(): Promise<HeadersInit> {
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
   const qs = searchParams.toString();
+  const queryString = qs ? `?${qs}` : "";
   try {
     const res = await fetch(
-      `${API_URL}/api/v1/orders${qs ? `?${qs}` : ""}`,
+      `${API_URL}/api/v1/orders${queryString}`,
       { headers: await authHeaders(), next: { revalidate: 0 } }
     );
     const body = await res.text();
