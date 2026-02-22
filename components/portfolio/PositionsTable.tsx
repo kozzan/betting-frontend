@@ -4,8 +4,7 @@ import Link from "next/link";
 import useSWR from "swr";
 import { Badge } from "@/components/ui/badge";
 import type { Position } from "@/types/positions";
-import type { ApiResponse } from "@/types/markets";
-import type { OrderBook } from "@/types/markets";
+import type { ApiResponse, OrderBook } from "@/types/markets";
 
 interface PositionsTableProps {
   readonly positions: Position[];
@@ -55,16 +54,12 @@ function UnrealisedPnl({
   const unrealisedCents =
     (bestPriceCents - position.averagePriceCents) * position.quantity;
 
+  let unrealisedColor = "text-muted-foreground";
+  if (unrealisedCents > 0) unrealisedColor = "text-emerald-600";
+  else if (unrealisedCents < 0) unrealisedColor = "text-red-600";
+
   return (
-    <span
-      className={`tabular-nums font-medium ${
-        unrealisedCents > 0
-          ? "text-emerald-600"
-          : unrealisedCents < 0
-            ? "text-red-600"
-            : "text-muted-foreground"
-      }`}
-    >
+    <span className={`tabular-nums font-medium ${unrealisedColor}`}>
       {formatCents(unrealisedCents, true)}
     </span>
   );
@@ -99,45 +94,43 @@ export function PositionsTable({ positions }: PositionsTableProps) {
           </tr>
         </thead>
         <tbody className="divide-y divide-border">
-          {positions.map((pos) => (
-            <tr key={pos.positionId} className="hover:bg-muted/30 transition-colors">
-              <td className="px-4 py-3">
-                <Link
-                  href={`/app/markets/${pos.marketId}`}
-                  className="hover:underline line-clamp-2 font-medium"
-                >
-                  {pos.marketTitle}
-                </Link>
-              </td>
-              <td className="px-4 py-3">
-                <Badge variant={pos.side === "YES" ? "default" : "destructive"}>
-                  {pos.side}
-                </Badge>
-              </td>
-              <td className="px-4 py-3 hidden sm:table-cell tabular-nums text-muted-foreground">
-                {pos.quantity}
-              </td>
-              <td className="px-4 py-3 hidden md:table-cell tabular-nums text-muted-foreground">
-                {pos.averagePriceCents}¢
-              </td>
-              <td className="px-4 py-3 hidden md:table-cell">
-                <UnrealisedPnl position={pos} />
-              </td>
-              <td className="px-4 py-3">
-                <span
-                  className={`tabular-nums font-medium ${
-                    pos.realisedPnlCents > 0
-                      ? "text-emerald-600"
-                      : pos.realisedPnlCents < 0
-                        ? "text-red-600"
-                        : "text-muted-foreground"
-                  }`}
-                >
-                  {formatCents(pos.realisedPnlCents, true)}
-                </span>
-              </td>
-            </tr>
-          ))}
+          {positions.map((pos) => {
+            let realisedColor = "text-muted-foreground";
+            if (pos.realisedPnlCents > 0) realisedColor = "text-emerald-600";
+            else if (pos.realisedPnlCents < 0) realisedColor = "text-red-600";
+
+            return (
+              <tr key={pos.positionId} className="hover:bg-muted/30 transition-colors">
+                <td className="px-4 py-3">
+                  <Link
+                    href={`/app/markets/${pos.marketId}`}
+                    className="hover:underline line-clamp-2 font-medium"
+                  >
+                    {pos.marketTitle}
+                  </Link>
+                </td>
+                <td className="px-4 py-3">
+                  <Badge variant={pos.side === "YES" ? "default" : "destructive"}>
+                    {pos.side}
+                  </Badge>
+                </td>
+                <td className="px-4 py-3 hidden sm:table-cell tabular-nums text-muted-foreground">
+                  {pos.quantity}
+                </td>
+                <td className="px-4 py-3 hidden md:table-cell tabular-nums text-muted-foreground">
+                  {pos.averagePriceCents}¢
+                </td>
+                <td className="px-4 py-3 hidden md:table-cell">
+                  <UnrealisedPnl position={pos} />
+                </td>
+                <td className="px-4 py-3">
+                  <span className={`tabular-nums font-medium ${realisedColor}`}>
+                    {formatCents(pos.realisedPnlCents, true)}
+                  </span>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

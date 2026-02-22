@@ -36,6 +36,10 @@ export default async function PortfolioPage() {
     0
   );
 
+  let pnlColor = "";
+  if (totalRealisedPnl > 0) pnlColor = "text-emerald-600";
+  else if (totalRealisedPnl < 0) pnlColor = "text-red-600";
+
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-semibold">Portfolio</h1>
@@ -46,15 +50,7 @@ export default async function PortfolioPage() {
           <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
             Realised P&L
           </p>
-          <p
-            className={`text-2xl font-semibold tabular-nums ${
-              totalRealisedPnl > 0
-                ? "text-emerald-600"
-                : totalRealisedPnl < 0
-                  ? "text-red-600"
-                  : ""
-            }`}
-          >
+          <p className={`text-2xl font-semibold tabular-nums ${pnlColor}`}>
             {formatCents(totalRealisedPnl, true)}
           </p>
         </div>
