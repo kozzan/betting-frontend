@@ -3,15 +3,27 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { LogOut, TrendingUp } from "lucide-react";
+import useSWR from "swr";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { formatCents } from "@/lib/format";
+import type { WalletBalance } from "@/types/orders";
+import type { ApiResponse } from "@/types/markets";
 
 const NAV_LINKS = [
   { href: "/app/markets", label: "Markets" },
   { href: "/app/orders", label: "Orders" },
   { href: "/app/portfolio", label: "Portfolio" },
   { href: "/app/wallet", label: "Wallet" },
+  { href: "/app/profile", label: "Profile" },
 ];
+
+async function walletFetcher(url: string): Promise<WalletBalance> {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Wallet fetch failed: ${res.status}`);
+  const json: ApiResponse<WalletBalance> = await res.json();
+  return json.data;
+}
 
 interface NavBarProps {
   readonly username?: string;
@@ -20,6 +32,7 @@ interface NavBarProps {
 export function NavBar({ username }: NavBarProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const { data: wallet } = useSWR("/api/wallet", walletFetcher, { refreshInterval: 30_000 });
 
   async function handleLogout() {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -51,6 +64,11 @@ export function NavBar({ username }: NavBarProps) {
         </nav>
       </div>
       <div className="flex items-center gap-3">
+        {wallet && (
+          <span className="text-sm tabular-nums text-muted-foreground hidden sm:block">
+            {formatCents(wallet.availableCents)}
+          </span>
+        )}
         {username && (
           <span className="text-sm text-muted-foreground hidden sm:block">{username}</span>
         )}
