@@ -10,6 +10,7 @@ import { OrderBook } from "@/components/markets/OrderBook";
 import { MarketTradeSection } from "@/components/markets/MarketTradeSection";
 import { PriceHistoryChart } from "@/components/markets/PriceHistoryChart";
 import { MarketComments } from "@/components/markets/MarketComments";
+import { MarketNews } from "@/components/markets/MarketNews";
 
 interface PageProps {
   readonly params: Promise<{ id: string }>;
@@ -178,6 +179,9 @@ export default async function MarketDetailPage({ params }: PageProps) {
             currentUserId={currentUserId}
           />
         </div>
+
+        {/* Latest News */}
+        <MarketNews marketId={market.id} />
       </div>
     </div>
   );
