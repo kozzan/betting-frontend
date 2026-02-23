@@ -49,45 +49,25 @@ function qtyToY(qty: number, maxQty: number): number {
 
 function buildAreaPath(
   points: CumulativePoint[],
-  maxQty: number,
-  side: "bid" | "ask"
+  maxQty: number
 ): string {
   if (points.length === 0) return "";
 
   // Step-line: each price level is a vertical drop then horizontal run.
-  const segments: string[] = [];
-
   const baseY = PAD_TOP + CHART_H;
+  const startX = priceToX(points[0].priceCents);
 
-  if (side === "bid") {
-    // Bids: highest price first → cumulate leftward; draw from right to left
-    // points are already sorted descending by priceCents
-    const startX = priceToX(points[0].priceCents);
-    segments.push(`M ${startX} ${baseY}`);
-    for (const pt of points) {
-      const x = priceToX(pt.priceCents);
-      const y = qtyToY(pt.cumQty, maxQty);
-      segments.push(`L ${x} ${y}`);
-      segments.push(`L ${x} ${y}`);
-    }
-    // Close down to baseline at leftmost point
-    const endX = priceToX(points[points.length - 1].priceCents);
-    segments.push(`L ${endX} ${baseY}`);
-  } else {
-    // Asks: lowest price first → cumulate rightward
-    const startX = priceToX(points[0].priceCents);
-    segments.push(`M ${startX} ${baseY}`);
-    for (const pt of points) {
-      const x = priceToX(pt.priceCents);
-      const y = qtyToY(pt.cumQty, maxQty);
-      segments.push(`L ${x} ${y}`);
-      segments.push(`L ${x} ${y}`);
-    }
-    const endX = priceToX(points[points.length - 1].priceCents);
-    segments.push(`L ${endX} ${baseY}`);
+  const segments: string[] = [`M ${startX} ${baseY}`];
+  for (const pt of points) {
+    const x = priceToX(pt.priceCents);
+    const y = qtyToY(pt.cumQty, maxQty);
+    segments.push(`L ${x} ${y}`, `L ${x} ${y}`);
   }
 
-  segments.push("Z");
+  // Close down to baseline at the last point
+  const endX = priceToX(points.at(-1)!.priceCents);
+  segments.push(`L ${endX} ${baseY}`, "Z");
+
   return segments.join(" ");
 }
 
@@ -104,8 +84,7 @@ function buildStepLinePath(
       parts.push(`M ${x} ${y}`);
     } else {
       // Step: horizontal to new price, then vertical to new cumulative qty
-      parts.push(`H ${x}`);
-      parts.push(`V ${y}`);
+      parts.push(`H ${x}`, `V ${y}`);
     }
   }
   return parts.join(" ");
@@ -122,12 +101,12 @@ export function DepthChart({ bids, asks }: DepthChartProps) {
   const askSeries = buildCumulativeSeries(asks, "asc");
 
   const maxQty = Math.max(
-    bidSeries.length > 0 ? bidSeries[bidSeries.length - 1].cumQty : 0,
-    askSeries.length > 0 ? askSeries[askSeries.length - 1].cumQty : 0
+    bidSeries.length > 0 ? bidSeries.at(-1)!.cumQty : 0,
+    askSeries.length > 0 ? askSeries.at(-1)!.cumQty : 0
   );
 
-  const bidAreaPath = buildAreaPath(bidSeries, maxQty, "bid");
-  const askAreaPath = buildAreaPath(askSeries, maxQty, "ask");
+  const bidAreaPath = buildAreaPath(bidSeries, maxQty);
+  const askAreaPath = buildAreaPath(askSeries, maxQty);
   const bidLinePath = buildStepLinePath(bidSeries, maxQty);
   const askLinePath = buildStepLinePath(askSeries, maxQty);
 
