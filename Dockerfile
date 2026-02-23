@@ -1,13 +1,11 @@
 # ── Stage 1: Deps ──
-FROM oven/bun:1-alpine AS deps
+FROM oven/bun:1 AS deps
 WORKDIR /app
 COPY package.json bun.lock* ./
 RUN bun install --frozen-lockfile
 
 # ── Stage 2: Build ──
-FROM oven/bun:1-alpine AS builder
-# Critical for Tailwind v4
-RUN apk add --no-cache libc6-compat
+FROM oven/bun:1 AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -25,16 +23,8 @@ WORKDIR /app
 ENV NODE_ENV=production
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
 
-# 1. Copy the standalone folder
-# Note: Next.js standalone folder already contains a 'server.js' and 'node_modules'
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-
-# 2. PLACE STATIC ASSETS CORRECTLY
-# The server.js looks for assets in .next/static relative to its position.
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-
-# 3. Copy public assets if they exist
-COPY --from=builder --chown=nextjs:nodejs /app/public* ./public/
 
 USER nextjs
 EXPOSE 3000
