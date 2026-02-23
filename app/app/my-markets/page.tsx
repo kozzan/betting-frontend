@@ -11,8 +11,8 @@ export default async function MyMarketsPage() {
       "/api/v1/markets?createdBy=me&status=DRAFT&size=50"
     );
     markets = res.data.content;
-  } catch {
-    // fall through to empty state
+  } catch (err) {
+    console.error("Failed to load my markets:", err);
   }
 
   return (

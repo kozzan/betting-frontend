@@ -1,5 +1,12 @@
 type ApiErrorBody = { message?: string; error?: string };
 
+export function formatDate(iso: string): string {
+  return new Intl.DateTimeFormat("en-US", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(iso));
+}
+
 export async function getErrorMessage(res: Response): Promise<string> {
   let message = `Error ${res.status}`;
   try {

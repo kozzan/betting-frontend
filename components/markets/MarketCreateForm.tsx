@@ -14,20 +14,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { getErrorMessage } from "@/lib/format";
+import { MARKET_CATEGORIES, TEXTAREA_CLASS } from "@/lib/markets";
 import type { MarketCategory } from "@/types/markets";
-
-const CATEGORIES: MarketCategory[] = [
-  "CRYPTO",
-  "POLITICS",
-  "SPORTS",
-  "FINANCE",
-  "SCIENCE",
-  "ENTERTAINMENT",
-  "OTHER",
-];
-
-const TEXTAREA_CLASS =
-  "flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none";
 
 interface FormState {
   title: string;
@@ -62,7 +50,18 @@ export function MarketCreateForm() {
     if (!form.title.trim()) next.title = "Title is required";
     if (!form.description.trim()) next.description = "Description is required";
     if (!form.resolutionCriteria.trim()) next.resolutionCriteria = "Resolution criteria is required";
-    if (!form.closeTime) next.closeTime = "Close time is required";
+    if (!form.closeTime) {
+      next.closeTime = "Close time is required";
+    } else if (new Date(form.closeTime) <= new Date()) {
+      next.closeTime = "Close time must be in the future";
+    }
+    if (form.resolutionSourceUrl.trim()) {
+      try {
+        new URL(form.resolutionSourceUrl.trim());
+      } catch {
+        next.resolutionSourceUrl = "Please enter a valid URL";
+      }
+    }
     if (!form.category) next.category = "Category is required";
     setErrors(next);
     return Object.keys(next).length === 0;
@@ -105,6 +104,7 @@ export function MarketCreateForm() {
           value={form.title}
           onChange={(e) => setField("title", e.target.value)}
           placeholder="e.g. Will BTC reach $100k by end of 2025?"
+          disabled={submitting}
         />
         {errors.title && <p className="text-xs text-destructive">{errors.title}</p>}
       </div>
@@ -118,6 +118,7 @@ export function MarketCreateForm() {
           placeholder="Provide context for the market..."
           rows={3}
           className={TEXTAREA_CLASS}
+          disabled={submitting}
         />
         {errors.description && <p className="text-xs text-destructive">{errors.description}</p>}
       </div>
@@ -131,6 +132,7 @@ export function MarketCreateForm() {
           placeholder="How will this market be resolved?"
           rows={3}
           className={TEXTAREA_CLASS}
+          disabled={submitting}
         />
         {errors.resolutionCriteria && (
           <p className="text-xs text-destructive">{errors.resolutionCriteria}</p>
@@ -148,7 +150,11 @@ export function MarketCreateForm() {
           value={form.resolutionSourceUrl}
           onChange={(e) => setField("resolutionSourceUrl", e.target.value)}
           placeholder="https://..."
+          disabled={submitting}
         />
+        {errors.resolutionSourceUrl && (
+          <p className="text-xs text-destructive">{errors.resolutionSourceUrl}</p>
+        )}
       </div>
 
       <div className="space-y-1.5">
@@ -158,6 +164,7 @@ export function MarketCreateForm() {
           type="datetime-local"
           value={form.closeTime}
           onChange={(e) => setField("closeTime", e.target.value)}
+          disabled={submitting}
         />
         {errors.closeTime && <p className="text-xs text-destructive">{errors.closeTime}</p>}
       </div>
@@ -167,12 +174,13 @@ export function MarketCreateForm() {
         <Select
           value={form.category}
           onValueChange={(val) => setField("category", val as MarketCategory)}
+          disabled={submitting}
         >
           <SelectTrigger id="category">
             <SelectValue placeholder="Select a category" />
           </SelectTrigger>
           <SelectContent>
-            {CATEGORIES.map((c) => (
+            {MARKET_CATEGORIES.map((c) => (
               <SelectItem key={c} value={c}>
                 {c}
               </SelectItem>

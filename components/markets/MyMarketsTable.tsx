@@ -5,18 +5,11 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { getErrorMessage } from "@/lib/format";
+import { formatDate, getErrorMessage } from "@/lib/format";
 import type { MarketSummary } from "@/types/markets";
 
 interface MyMarketsTableProps {
   readonly markets: MarketSummary[];
-}
-
-function formatDate(iso: string): string {
-  return new Intl.DateTimeFormat("en-US", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(iso));
 }
 
 export function MyMarketsTable({ markets: initial }: MyMarketsTableProps) {
@@ -30,6 +23,8 @@ export function MyMarketsTable({ markets: initial }: MyMarketsTableProps) {
       if (!res.ok) {
         toast.error(await getErrorMessage(res));
         setMarkets(snapshot);
+      } else {
+        toast.success("Market deleted");
       }
     } catch {
       toast.error("Failed to delete market");

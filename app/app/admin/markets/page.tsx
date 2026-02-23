@@ -20,8 +20,8 @@ export default async function AdminMarketsPage() {
       "/api/v1/markets?status=DRAFT"
     );
     markets = res.data.content;
-  } catch {
-    // fall through to empty state
+  } catch (err) {
+    console.error("Failed to load admin markets queue:", err);
   }
 
   return (

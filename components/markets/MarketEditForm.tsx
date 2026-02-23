@@ -14,20 +14,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { getErrorMessage } from "@/lib/format";
+import { MARKET_CATEGORIES, TEXTAREA_CLASS } from "@/lib/markets";
 import type { Market, MarketCategory } from "@/types/markets";
-
-const CATEGORIES: MarketCategory[] = [
-  "CRYPTO",
-  "POLITICS",
-  "SPORTS",
-  "FINANCE",
-  "SCIENCE",
-  "ENTERTAINMENT",
-  "OTHER",
-];
-
-const TEXTAREA_CLASS =
-  "flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none";
 
 function toDatetimeLocal(iso: string): string {
   return new Date(iso).toISOString().slice(0, 16);
@@ -53,7 +41,11 @@ export function MarketEditForm({ market }: MarketEditFormProps) {
     if (!title.trim()) next.title = "Title is required";
     if (!description.trim()) next.description = "Description is required";
     if (!resolutionCriteria.trim()) next.resolutionCriteria = "Resolution criteria is required";
-    if (!closeTime) next.closeTime = "Close time is required";
+    if (!closeTime) {
+      next.closeTime = "Close time is required";
+    } else if (new Date(closeTime) <= new Date()) {
+      next.closeTime = "Close time must be in the future";
+    }
     setErrors(next);
     return Object.keys(next).length === 0;
   }
@@ -94,6 +86,7 @@ export function MarketEditForm({ market }: MarketEditFormProps) {
           id="title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
+          disabled={submitting}
         />
         {errors.title && <p className="text-xs text-destructive">{errors.title}</p>}
       </div>
@@ -106,6 +99,7 @@ export function MarketEditForm({ market }: MarketEditFormProps) {
           onChange={(e) => setDescription(e.target.value)}
           rows={3}
           className={TEXTAREA_CLASS}
+          disabled={submitting}
         />
         {errors.description && <p className="text-xs text-destructive">{errors.description}</p>}
       </div>
@@ -118,6 +112,7 @@ export function MarketEditForm({ market }: MarketEditFormProps) {
           onChange={(e) => setResolutionCriteria(e.target.value)}
           rows={3}
           className={TEXTAREA_CLASS}
+          disabled={submitting}
         />
         {errors.resolutionCriteria && (
           <p className="text-xs text-destructive">{errors.resolutionCriteria}</p>
@@ -135,6 +130,7 @@ export function MarketEditForm({ market }: MarketEditFormProps) {
           value={resolutionSourceUrl}
           onChange={(e) => setResolutionSourceUrl(e.target.value)}
           placeholder="https://..."
+          disabled={submitting}
         />
       </div>
 
@@ -145,18 +141,23 @@ export function MarketEditForm({ market }: MarketEditFormProps) {
           type="datetime-local"
           value={closeTime}
           onChange={(e) => setCloseTime(e.target.value)}
+          disabled={submitting}
         />
         {errors.closeTime && <p className="text-xs text-destructive">{errors.closeTime}</p>}
       </div>
 
       <div className="space-y-1.5">
         <Label htmlFor="category">Category</Label>
-        <Select value={category} onValueChange={(val) => setCategory(val as MarketCategory)}>
+        <Select
+          value={category}
+          onValueChange={(val) => setCategory(val as MarketCategory)}
+          disabled={submitting}
+        >
           <SelectTrigger id="category">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {CATEGORIES.map((c) => (
+            {MARKET_CATEGORIES.map((c) => (
               <SelectItem key={c} value={c}>
                 {c}
               </SelectItem>
@@ -173,6 +174,7 @@ export function MarketEditForm({ market }: MarketEditFormProps) {
           type="button"
           variant="outline"
           onClick={() => router.push("/app/my-markets")}
+          disabled={submitting}
         >
           Cancel
         </Button>

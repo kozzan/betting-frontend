@@ -3,18 +3,11 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { getErrorMessage } from "@/lib/format";
+import { formatDate, getErrorMessage } from "@/lib/format";
 import type { MarketSummary } from "@/types/markets";
 
 interface AdminMarketsTableProps {
   readonly markets: MarketSummary[];
-}
-
-function formatDate(iso: string): string {
-  return new Intl.DateTimeFormat("en-US", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(iso));
 }
 
 export function AdminMarketsTable({ markets: initial }: AdminMarketsTableProps) {

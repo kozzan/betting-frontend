@@ -22,5 +22,6 @@ export const config = {
     "/app/markets/create",
     "/app/markets/:path*/edit",
     "/app/my-markets/:path*",
+    "/app/admin/:path*",
   ],
 };
