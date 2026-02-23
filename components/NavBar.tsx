@@ -17,6 +17,7 @@ const PRIVATE_NAV_LINKS = [
   { href: "/app/orders", label: "Orders" },
   { href: "/app/portfolio", label: "Portfolio" },
   { href: "/app/wallet", label: "Wallet" },
+  { href: "/app/my-markets", label: "My Markets" },
   { href: "/app/profile", label: "Profile" },
 ];
 
