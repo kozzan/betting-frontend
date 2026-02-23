@@ -50,11 +50,11 @@ function buildPath(points: PricePoint[]): string {
 }
 
 function buildAreaPath(points: PricePoint[]): string {
-  if (points.length === 0) return "";
+  if (points.length < 2) return "";
   const n = points.length;
   const bottom = PAD_TOP + CHART_H;
   const lineParts = points.map((pt, i) => {
-    const x = PAD_LEFT + (i / (n === 1 ? 1 : n - 1)) * CHART_W;
+    const x = PAD_LEFT + (i / (n - 1)) * CHART_W;
     const y = pctToY(pt.yesPct);
     return `${i === 0 ? "M" : "L"}${x.toFixed(2)},${y.toFixed(2)}`;
   });
@@ -73,9 +73,9 @@ interface ChartContentProps {
 function ChartContent({ isLoading, error, data, marketId }: ChartContentProps) {
   if (isLoading) {
     return (
-      <div className="h-[120px] flex items-center justify-center">
+      <output className="h-[120px] flex items-center justify-center" aria-label="Loading price history">
         <div className="h-5 w-5 rounded-full border-2 border-muted-foreground border-t-transparent animate-spin" />
-      </div>
+      </output>
     );
   }
   if (error) {
@@ -198,6 +198,7 @@ export function PriceHistoryChart({ marketId }: PriceHistoryChartProps) {
           <button
             key={r}
             type="button"
+            aria-pressed={range === r}
             onClick={() => setRange(r)}
             className={`px-3 py-1 text-xs font-medium rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 ${
               range === r

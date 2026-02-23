@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { cookies } from "next/headers";
-import { isTokenExpired } from "@/lib/auth";
+import { isTokenExpired, decodeJwtPayload } from "@/lib/auth";
 import { apiRequest } from "@/lib/api";
 import type { ApiResponse, Market } from "@/types/markets";
 import { Badge } from "@/components/ui/badge";
@@ -39,14 +39,13 @@ function formatDate(iso: string): string {
   }).format(new Date(iso));
 }
 
-function decodeTokenSub(token: string): string | undefined {
+function safeUrl(url: string | null | undefined): string | null {
+  if (!url) return null;
   try {
-    const [, payload] = token.split(".");
-    if (!payload) return undefined;
-    const decoded = JSON.parse(atob(payload.replaceAll("-", "+").replaceAll("_", "/")));
-    return typeof decoded.sub === "string" ? decoded.sub : undefined;
+    const { protocol } = new URL(url);
+    return protocol === "http:" || protocol === "https:" ? url : null;
   } catch {
-    return undefined;
+    return null;
   }
 }
 
@@ -55,7 +54,8 @@ export default async function MarketDetailPage({ params }: PageProps) {
   const cookieStore = await cookies();
   const token = cookieStore.get("access_token")?.value;
   const isAuthenticated = !!token && !isTokenExpired(token);
-  const currentUserId = isAuthenticated && token ? decodeTokenSub(token) : undefined;
+  const decoded = token ? decodeJwtPayload(token) : null;
+  const currentUserId = typeof decoded?.sub === "string" ? decoded.sub : undefined;
 
   let market: Market;
   try {
@@ -132,9 +132,9 @@ export default async function MarketDetailPage({ params }: PageProps) {
               >
                 How resolution works &rarr;
               </Link>
-              {market.resolutionSourceUrl && (
+              {safeUrl(market.resolutionSourceUrl) && (
                 <a
-                  href={market.resolutionSourceUrl}
+                  href={safeUrl(market.resolutionSourceUrl)!}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-primary hover:underline"

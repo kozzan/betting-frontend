@@ -41,6 +41,8 @@ export function MarketComments({ marketId, isAuthenticated, currentUserId }: Mar
   const [body, setBody] = useState("");
   const [posting, setPosting] = useState(false);
   const [postError, setPostError] = useState<string | null>(null);
+  const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const optimisticIdRef = useRef(0);
 
   const { data: comments, error, mutate, isLoading } = useSWR<MarketComment[]>(
@@ -96,6 +98,11 @@ export function MarketComments({ marketId, isAuthenticated, currentUserId }: Mar
   }
 
   async function handleDelete(commentId: string) {
+    if (deletingIds.has(commentId)) return;
+    setDeletingIds((prev) => new Set(prev).add(commentId));
+    setDeleteError(null);
+
+    const snapshot = comments;
     await mutate(
       (current) => (current ?? []).filter((c) => c.id !== commentId),
       { revalidate: false }
@@ -104,9 +111,17 @@ export function MarketComments({ marketId, isAuthenticated, currentUserId }: Mar
       const res = await fetch(`/api/markets/${marketId}/comments/${commentId}`, {
         method: "DELETE",
       });
-      if (!res.ok) throw new Error("Delete failed");
-    } catch {
+      if (!res.ok) throw new Error("Failed to delete comment");
       await mutate();
+    } catch (err) {
+      await mutate(snapshot, { revalidate: false });
+      setDeleteError(err instanceof Error ? err.message : "Failed to delete comment");
+    } finally {
+      setDeletingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(commentId);
+        return next;
+      });
     }
   }
 
@@ -154,8 +169,9 @@ export function MarketComments({ marketId, isAuthenticated, currentUserId }: Mar
                     <button
                       type="button"
                       aria-label="Delete comment"
+                      disabled={deletingIds.has(comment.id)}
                       onClick={() => handleDelete(comment.id)}
-                      className="ml-auto text-muted-foreground hover:text-destructive transition-colors"
+                      className="ml-auto text-muted-foreground hover:text-destructive transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
@@ -168,12 +184,18 @@ export function MarketComments({ marketId, isAuthenticated, currentUserId }: Mar
         </ul>
       )}
 
+      {/* Delete error */}
+      {deleteError && (
+        <p className="text-xs text-destructive">{deleteError}</p>
+      )}
+
       {/* Compose area */}
       {isAuthenticated ? (
         <div className="space-y-2 pt-2">
           <textarea
             value={body}
-            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setBody(e.target.value)}
+            onChange={(e) => setBody(e.target.value)}
+            aria-label="Write a comment"
             placeholder="Write a comment..."
             rows={2}
             className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none min-h-[4.5rem] max-h-[7.5rem]"

@@ -1,7 +1,8 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "How resolution works",
 };
 
