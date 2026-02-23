@@ -11,9 +11,8 @@ export default async function AppLayout({
   const cookieStore = await cookies();
   const token = cookieStore.get("access_token")?.value;
   const decoded = token ? decodeJwtPayload(token) : null;
-  const username = typeof decoded?.username === "string"
-    ? decoded.username
-    : typeof decoded?.sub === "string" ? decoded.sub : undefined;
+  const rawUsername = typeof decoded?.username === "string" ? decoded.username : null;
+  const username = rawUsername ?? (typeof decoded?.sub === "string" ? decoded.sub : undefined);
 
   return (
     <div className="flex flex-col min-h-screen">
