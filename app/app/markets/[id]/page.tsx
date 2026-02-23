@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
+import { cookies } from "next/headers";
 import { apiRequest } from "@/lib/api";
 import type { ApiResponse, Market } from "@/types/markets";
 import { Badge } from "@/components/ui/badge";
@@ -36,6 +37,8 @@ function formatDate(iso: string): string {
 
 export default async function MarketDetailPage({ params }: PageProps) {
   const { id } = await params;
+  const cookieStore = await cookies();
+  const isAuthenticated = !!cookieStore.get("access_token")?.value;
 
   let market: Market;
   try {
@@ -111,7 +114,27 @@ export default async function MarketDetailPage({ params }: PageProps) {
         {/* Trading panel + Order book */}
         <div className="grid gap-4 lg:grid-cols-2">
           {market.status === "OPEN" && (
-            <PlaceOrderPanel marketId={market.id} />
+            isAuthenticated ? (
+              <PlaceOrderPanel marketId={market.id} />
+            ) : (
+              <div className="rounded-md border border-border p-6 flex flex-col items-center justify-center gap-3 text-center">
+                <p className="text-sm text-muted-foreground">Sign in to place orders on this market.</p>
+                <div className="flex gap-2">
+                  <Link
+                    href={`/login?from=/app/markets/${market.id}`}
+                    className="inline-flex items-center justify-center rounded-md bg-primary text-primary-foreground text-sm font-medium px-4 py-2 hover:bg-primary/90 transition-colors"
+                  >
+                    Log in
+                  </Link>
+                  <Link
+                    href="/register"
+                    className="inline-flex items-center justify-center rounded-md border border-input bg-background text-sm font-medium px-4 py-2 hover:bg-accent hover:text-accent-foreground transition-colors"
+                  >
+                    Register
+                  </Link>
+                </div>
+              </div>
+            )
           )}
           <div className={market.status === "OPEN" ? "" : "lg:col-span-2"}>
             <OrderBook marketId={market.id} />
