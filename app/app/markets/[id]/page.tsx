@@ -103,13 +103,31 @@ export default async function MarketDetailPage({ params }: PageProps) {
 
         {/* Resolution criteria */}
         {market.resolutionCriteria && (
-          <div className="space-y-1">
+          <div className="space-y-2">
             <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
               Resolution criteria
             </h2>
             <p className="text-sm leading-relaxed whitespace-pre-wrap">
               {market.resolutionCriteria}
             </p>
+            <div className="flex flex-wrap gap-4 pt-1 text-sm">
+              <Link
+                href="/app/rules"
+                className="text-primary hover:underline"
+              >
+                How resolution works &rarr;
+              </Link>
+              {market.resolutionSourceUrl && (
+                <a
+                  href={market.resolutionSourceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline"
+                >
+                  Resolution source &rarr;
+                </a>
+              )}
+            </div>
           </div>
         )}
 

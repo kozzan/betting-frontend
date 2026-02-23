@@ -68,6 +68,7 @@ const MARKET_DETAILS: Record<string, Market> = {
     status: "OPEN",
     resolutionCriteria:
       "Resolved using the Coinbase BTC/USD daily closing price. A single daily close above $100,000 is sufficient.",
+    resolutionSourceUrl: "https://www.coinbase.com/price/bitcoin",
     closeTime: "2025-12-31T23:59:00Z",
     settlementTime: null,
     resolvedOutcome: null,
