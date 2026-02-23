@@ -1,3 +1,5 @@
+import { getMockResponse, USE_MOCK_DATA } from "@/lib/mocks";
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
 
 type FetchOptions = RequestInit & {
@@ -41,6 +43,11 @@ export async function apiRequest<T>(
   path: string,
   options: FetchOptions = {}
 ): Promise<T> {
+  if (USE_MOCK_DATA) {
+    const mock = getMockResponse(path);
+    if (mock !== null) return mock as T;
+  }
+
   const { skipAuth = false, ...fetchOptions } = options;
 
   const headers = new Headers(fetchOptions.headers);
