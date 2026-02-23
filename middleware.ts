@@ -1,17 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-
-function isTokenExpired(token: string): boolean {
-  try {
-    const [, payload] = token.split(".");
-    if (!payload) return true;
-    const decoded = JSON.parse(atob(payload.replaceAll("-", "+").replaceAll("_", "/")));
-    const exp: number = decoded.exp;
-    if (!exp) return true;
-    return Date.now() / 1000 >= exp - 10;
-  } catch {
-    return true;
-  }
-}
+import { isTokenExpired } from "@/lib/auth";
 
 export function middleware(request: NextRequest) {
   const token = request.cookies.get("access_token")?.value;
@@ -26,5 +14,10 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/app/:path*"],
+  matcher: [
+    "/app/orders/:path*",
+    "/app/portfolio/:path*",
+    "/app/wallet/:path*",
+    "/app/profile/:path*",
+  ],
 };
