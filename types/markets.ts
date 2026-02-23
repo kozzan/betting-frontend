@@ -26,6 +26,7 @@ export interface Market {
   category: MarketCategory;
   status: MarketStatus;
   resolutionCriteria: string;
+  resolutionSourceUrl?: string | null;
   closeTime: string;
   settlementTime: string | null;
   resolvedOutcome: Outcome | null;
