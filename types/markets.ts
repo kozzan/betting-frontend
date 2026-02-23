@@ -65,3 +65,12 @@ export interface PricePoint {
   timestamp: string; // ISO 8601
   yesPct: number;    // 0–100
 }
+
+export interface MarketComment {
+  id: string;
+  marketId: string;
+  userId: string;
+  username: string;
+  body: string;
+  createdAt: string; // ISO 8601
+}
