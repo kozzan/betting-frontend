@@ -19,5 +19,9 @@ export const config = {
     "/app/portfolio/:path*",
     "/app/wallet/:path*",
     "/app/profile/:path*",
+    "/app/markets/create",
+    "/app/markets/:path*/edit",
+    "/app/my-markets/:path*",
+    "/app/admin/:path*",
   ],
 };

@@ -16,6 +16,7 @@ export interface MarketSummary {
   category: MarketCategory;
   status: MarketStatus;
   closeTime: string;
+  createdBy?: string;
 }
 
 export interface Market {
