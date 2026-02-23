@@ -6,9 +6,8 @@ import { isTokenExpired } from "@/lib/auth";
 import { apiRequest } from "@/lib/api";
 import type { ApiResponse, Market } from "@/types/markets";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { OrderBook } from "@/components/markets/OrderBook";
-import { PlaceOrderPanel } from "@/components/orders/PlaceOrderPanel";
+import { MarketTradeSection } from "@/components/markets/MarketTradeSection";
 
 interface PageProps {
   readonly params: Promise<{ id: string }>;
@@ -117,21 +116,11 @@ export default async function MarketDetailPage({ params }: PageProps) {
         {/* Trading panel + Order book */}
         <div className="grid gap-4 lg:grid-cols-2">
           {market.status === "OPEN" && (
-            isAuthenticated ? (
-              <PlaceOrderPanel marketId={market.id} />
-            ) : (
-              <div className="rounded-md border border-border p-6 flex flex-col items-center justify-center gap-3 text-center">
-                <p className="text-sm text-muted-foreground">Sign in to place orders on this market.</p>
-                <div className="flex gap-2">
-                  <Button asChild>
-                    <Link href={`/login?from=/app/markets/${market.id}`}>Log in</Link>
-                  </Button>
-                  <Button variant="outline" asChild>
-                    <Link href={`/register?from=/app/markets/${market.id}`}>Register</Link>
-                  </Button>
-                </div>
-              </div>
-            )
+            <MarketTradeSection
+              marketId={market.id}
+              isAuthenticated={isAuthenticated}
+              fromPath={`/app/markets/${market.id}`}
+            />
           )}
           <div className={market.status === "OPEN" ? "" : "lg:col-span-2"}>
             <OrderBook marketId={market.id} />
