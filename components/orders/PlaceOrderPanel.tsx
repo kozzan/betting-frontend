@@ -3,6 +3,7 @@
 import { useState } from "react";
 import useSWR from "swr";
 import { toast } from "sonner";
+import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,6 +11,8 @@ import type { ApiResponse, WalletBalance, Order, OrderAction, OrderSide, OrderSt
 
 interface PlaceOrderPanelProps {
   readonly marketId: string;
+  readonly initialSide?: OrderSide;
+  readonly onClose?: () => void;
 }
 
 async function walletFetcher(url: string): Promise<WalletBalance> {
@@ -29,8 +32,8 @@ function orderStatusMessage(status: OrderStatus): string {
   return "Open";
 }
 
-export function PlaceOrderPanel({ marketId }: PlaceOrderPanelProps) {
-  const [side, setSide] = useState<OrderSide>("YES");
+export function PlaceOrderPanel({ marketId, initialSide = "YES", onClose }: PlaceOrderPanelProps) {
+  const [side, setSide] = useState<OrderSide>(initialSide);
   const [action, setAction] = useState<OrderAction>("BUY");
   const [price, setPrice] = useState("");
   const [quantity, setQuantity] = useState("");
@@ -90,8 +93,13 @@ export function PlaceOrderPanel({ marketId }: PlaceOrderPanelProps) {
 
   return (
     <div className="rounded-md border border-border overflow-hidden">
-      <div className="px-4 py-3 border-b border-border bg-muted/30">
+      <div className="px-4 py-3 border-b border-border bg-muted/30 flex items-center justify-between">
         <span className="text-sm font-medium">Place Order</span>
+        {onClose && (
+          <button type="button" onClick={onClose} className="text-muted-foreground hover:text-foreground">
+            <X className="h-4 w-4" />
+          </button>
+        )}
       </div>
 
       <div className="p-4 space-y-4">
