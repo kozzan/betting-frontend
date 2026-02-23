@@ -96,7 +96,12 @@ export function PlaceOrderPanel({ marketId, initialSide = "YES", onClose }: Plac
       <div className="px-4 py-3 border-b border-border bg-muted/30 flex items-center justify-between">
         <span className="text-sm font-medium">Place Order</span>
         {onClose && (
-          <button type="button" onClick={onClose} className="text-muted-foreground hover:text-foreground">
+          <button
+            type="button"
+            aria-label="Close order panel"
+            onClick={onClose}
+            className="text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          >
             <X className="h-4 w-4" />
           </button>
         )}

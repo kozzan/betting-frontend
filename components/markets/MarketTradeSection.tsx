@@ -28,15 +28,17 @@ export function MarketTradeSection({ marketId, isAuthenticated, fromPath }: Mark
       <div className="grid grid-cols-2 gap-3">
         <button
           type="button"
+          aria-label="Buy YES shares"
           onClick={() => handleSideClick("YES")}
-          className="rounded-md py-3 text-sm font-semibold transition-colors bg-emerald-600 hover:bg-emerald-700 text-white"
+          className="rounded-md py-3 text-sm font-semibold transition-colors bg-emerald-600 hover:bg-emerald-700 text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         >
           Buy YES
         </button>
         <button
           type="button"
+          aria-label="Buy NO shares"
           onClick={() => handleSideClick("NO")}
-          className="rounded-md py-3 text-sm font-semibold transition-colors bg-red-600 hover:bg-red-700 text-white"
+          className="rounded-md py-3 text-sm font-semibold transition-colors bg-red-600 hover:bg-red-700 text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         >
           Buy NO
         </button>
