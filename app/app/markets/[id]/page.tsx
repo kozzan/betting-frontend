@@ -8,6 +8,7 @@ import type { ApiResponse, Market } from "@/types/markets";
 import { Badge } from "@/components/ui/badge";
 import { OrderBook } from "@/components/markets/OrderBook";
 import { MarketTradeSection } from "@/components/markets/MarketTradeSection";
+import { PriceHistoryChart } from "@/components/markets/PriceHistoryChart";
 
 interface PageProps {
   readonly params: Promise<{ id: string }>;
@@ -143,6 +144,14 @@ export default async function MarketDetailPage({ params }: PageProps) {
           <div className={market.status === "OPEN" ? "" : "lg:col-span-2"}>
             <OrderBook marketId={market.id} />
           </div>
+        </div>
+
+        {/* Price History */}
+        <div className="space-y-2">
+          <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+            Price History
+          </h2>
+          <PriceHistoryChart marketId={market.id} />
         </div>
       </div>
     </div>
