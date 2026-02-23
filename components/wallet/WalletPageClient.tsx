@@ -19,6 +19,15 @@ async function transactionsFetcher(url: string): Promise<PagedResponse<Transacti
   return json.data;
 }
 
+function BalanceCard({ label, value, dim }: { readonly label: string; readonly value: string; readonly dim?: boolean }) {
+  return (
+    <div className="rounded-md border border-border p-4">
+      <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">{label}</p>
+      <p className={`text-2xl font-semibold tabular-nums${dim ? " text-muted-foreground" : ""}`}>{value}</p>
+    </div>
+  );
+}
+
 function AmountForm({
   label,
   buttonLabel,
@@ -91,8 +100,8 @@ export function WalletPageClient() {
     transactionsFetcher
   );
 
-  async function handleDeposit(amountCents: number) {
-    const res = await fetch("/api/wallet/deposits", {
+  async function handleFundsAction(endpoint: string, successMsg: string, amountCents: number) {
+    const res = await fetch(endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ amountCents }),
@@ -101,48 +110,23 @@ export function WalletPageClient() {
       toast.error(await getErrorMessage(res));
       return;
     }
-    toast.success("Deposit successful");
+    toast.success(successMsg);
     mutateWallet().catch((e: unknown) => console.error("Wallet revalidation failed", e));
     mutateTx().catch((e: unknown) => console.error("Transactions revalidation failed", e));
   }
 
-  async function handleWithdraw(amountCents: number) {
-    const res = await fetch("/api/wallet/withdrawals", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ amountCents }),
-    });
-    if (!res.ok) {
-      toast.error(await getErrorMessage(res));
-      return;
-    }
-    toast.success("Withdrawal successful");
-    mutateWallet().catch((e: unknown) => console.error("Wallet revalidation failed", e));
-    mutateTx().catch((e: unknown) => console.error("Transactions revalidation failed", e));
-  }
+  const handleDeposit = (amountCents: number) =>
+    handleFundsAction("/api/wallet/deposits", "Deposit successful", amountCents);
+  const handleWithdraw = (amountCents: number) =>
+    handleFundsAction("/api/wallet/withdrawals", "Withdrawal successful", amountCents);
 
   return (
     <div className="space-y-6">
       {/* Balance cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="rounded-md border border-border p-4">
-          <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Available</p>
-          <p className="text-2xl font-semibold tabular-nums">
-            {wallet ? formatCents(wallet.availableCents) : "—"}
-          </p>
-        </div>
-        <div className="rounded-md border border-border p-4">
-          <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Held</p>
-          <p className="text-2xl font-semibold tabular-nums text-muted-foreground">
-            {wallet ? formatCents(wallet.heldCents) : "—"}
-          </p>
-        </div>
-        <div className="rounded-md border border-border p-4">
-          <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Total</p>
-          <p className="text-2xl font-semibold tabular-nums">
-            {wallet ? formatCents(wallet.balanceCents) : "—"}
-          </p>
-        </div>
+        <BalanceCard label="Available" value={wallet ? formatCents(wallet.availableCents) : "—"} />
+        <BalanceCard label="Held" value={wallet ? formatCents(wallet.heldCents) : "—"} dim />
+        <BalanceCard label="Total" value={wallet ? formatCents(wallet.balanceCents) : "—"} />
       </div>
 
       {/* Deposit / Withdraw tabs */}
