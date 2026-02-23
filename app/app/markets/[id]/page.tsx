@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { OrderBook } from "@/components/markets/OrderBook";
 import { MarketTradeSection } from "@/components/markets/MarketTradeSection";
 import { PriceHistoryChart } from "@/components/markets/PriceHistoryChart";
+import { MarketComments } from "@/components/markets/MarketComments";
 
 interface PageProps {
   readonly params: Promise<{ id: string }>;
@@ -37,11 +38,23 @@ function formatDate(iso: string): string {
   }).format(new Date(iso));
 }
 
+function decodeTokenSub(token: string): string | undefined {
+  try {
+    const [, payload] = token.split(".");
+    if (!payload) return undefined;
+    const decoded = JSON.parse(atob(payload.replaceAll("-", "+").replaceAll("_", "/")));
+    return typeof decoded.sub === "string" ? decoded.sub : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export default async function MarketDetailPage({ params }: PageProps) {
   const { id } = await params;
   const cookieStore = await cookies();
   const token = cookieStore.get("access_token")?.value;
   const isAuthenticated = !!token && !isTokenExpired(token);
+  const currentUserId = isAuthenticated && token ? decodeTokenSub(token) : undefined;
 
   let market: Market;
   try {
@@ -152,6 +165,18 @@ export default async function MarketDetailPage({ params }: PageProps) {
             Price History
           </h2>
           <PriceHistoryChart marketId={market.id} />
+        </div>
+
+        {/* Discussion */}
+        <div className="space-y-3">
+          <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+            Discussion
+          </h2>
+          <MarketComments
+            marketId={market.id}
+            isAuthenticated={isAuthenticated}
+            currentUserId={currentUserId}
+          />
         </div>
       </div>
     </div>
