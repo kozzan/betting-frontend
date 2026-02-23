@@ -30,18 +30,19 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN addgroup --system --gid 1001 nodejs \
  && adduser  --system --uid 1001 nextjs
 
-# 1. Copy the standalone output (includes server.js)
+# 1. Copy the standalone output
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 
-# 2. Copy static files and public assets (CRITICAL for CSS/Images)
-# These must be placed relative to the server.js in standalone mode
+# 2. Copy static files (The CSS/JS chunks)
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+
+# 3. Copy public folder ONLY if it exists (using a conditional check)
+# Alternatively, create a dummy folder in Stage 2 to prevent this error
+COPY --from=builder --chown=nextjs:nodejs /app/public* ./public/
 
 USER nextjs
 EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-# Start the application using node
 CMD ["node", "server.js"]
