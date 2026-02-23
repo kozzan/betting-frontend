@@ -74,3 +74,11 @@ export interface MarketComment {
   body: string;
   createdAt: string; // ISO 8601
 }
+
+export interface NewsArticle {
+  id: string;
+  title: string;
+  source: string;
+  url: string;
+  publishedAt: string; // ISO 8601
+}
