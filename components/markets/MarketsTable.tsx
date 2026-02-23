@@ -19,6 +19,7 @@ import type {
   MarketSummary,
   PagedResponse,
 } from "@/types/markets";
+import { MarketProbabilityBadge } from "@/components/markets/MarketProbabilityBadge";
 
 interface MarketsTableProps {
   readonly markets: PagedResponse<MarketSummary>;
@@ -188,6 +189,9 @@ export function MarketsTable({
                 <th className="text-left px-4 py-3 font-medium hidden md:table-cell">
                   Closes
                 </th>
+                <th className="text-left px-4 py-3 font-medium hidden lg:table-cell">
+                  Probability
+                </th>
                 <th className="text-left px-4 py-3 font-medium">Status</th>
               </tr>
             </thead>
@@ -212,6 +216,13 @@ export function MarketsTable({
                   </td>
                   <td className="px-4 py-3 hidden md:table-cell text-muted-foreground">
                     {formatCloseTime(market.closeTime)}
+                  </td>
+                  <td className="px-4 py-3 hidden lg:table-cell">
+                    {market.status === "OPEN" ? (
+                      <MarketProbabilityBadge marketId={market.id} />
+                    ) : (
+                      <span className="text-muted-foreground text-xs">—</span>
+                    )}
                   </td>
                   <td className="px-4 py-3">
                     <Badge variant={statusVariant(market.status)}>
