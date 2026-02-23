@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import { getMockResponse, USE_MOCK_DATA } from "@/lib/mocks";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
 
@@ -12,6 +13,11 @@ export async function buildAuthHeaders(): Promise<HeadersInit> {
 }
 
 export async function proxyGet(backendPath: string, qs?: string): Promise<NextResponse> {
+  if (USE_MOCK_DATA) {
+    const mock = getMockResponse(backendPath);
+    if (mock !== null) return NextResponse.json(mock);
+  }
+
   const queryString = qs ? `?${qs}` : "";
   try {
     const res = await fetch(`${API_URL}${backendPath}${queryString}`, {
