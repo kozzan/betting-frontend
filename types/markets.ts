@@ -60,3 +60,8 @@ export interface PagedResponse<T> {
   page: number;
   size: number;
 }
+
+export interface PricePoint {
+  timestamp: string; // ISO 8601
+  yesPct: number;    // 0–100
+}

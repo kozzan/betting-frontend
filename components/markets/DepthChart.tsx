@@ -53,21 +53,19 @@ function buildAreaPath(
 ): string {
   if (points.length === 0) return "";
 
-  // Step-line: each price level is a vertical drop then horizontal run.
+  // Step-line area: move to start at baseline, step through each point, close at baseline.
   const baseY = PAD_TOP + CHART_H;
   const startX = priceToX(points[0].priceCents);
+  const segments = [`M ${startX} ${baseY}`];
 
-  const segments: string[] = [`M ${startX} ${baseY}`];
   for (const pt of points) {
     const x = priceToX(pt.priceCents);
     const y = qtyToY(pt.cumQty, maxQty);
-    segments.push(`L ${x} ${y}`, `L ${x} ${y}`);
+    segments.push(`L ${x} ${y}`);
   }
 
-  // Close down to baseline at the last point
   const endX = priceToX(points.at(-1)!.priceCents);
   segments.push(`L ${endX} ${baseY}`, "Z");
-
   return segments.join(" ");
 }
 
