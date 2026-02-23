@@ -1,30 +1,10 @@
-import { cookies } from "next/headers";
-import { NextRequest, NextResponse } from "next/server";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
+import { NextRequest } from "next/server";
+import { proxyDelete } from "@/lib/proxy";
 
 export async function DELETE(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const cookieStore = await cookies();
-  const token = cookieStore.get("access_token")?.value;
-
-  const headers: HeadersInit = { "Content-Type": "application/json" };
-  if (token) headers["Authorization"] = `Bearer ${token}`;
-
-  try {
-    const res = await fetch(`${API_URL}/api/v1/orders/${id}`, {
-      method: "DELETE",
-      headers,
-    });
-    const body = await res.text();
-    return new NextResponse(body, {
-      status: res.status,
-      headers: { "Content-Type": "application/json" },
-    });
-  } catch {
-    return NextResponse.json({ error: "Failed to cancel order" }, { status: 502 });
-  }
+  return proxyDelete(`/api/v1/orders/${id}`);
 }

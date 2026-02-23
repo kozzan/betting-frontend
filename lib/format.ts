@@ -1,3 +1,16 @@
+type ApiErrorBody = { message?: string; error?: string };
+
+export async function getErrorMessage(res: Response): Promise<string> {
+  let message = `Error ${res.status}`;
+  try {
+    const err = (await res.json()) as ApiErrorBody;
+    message = err?.message ?? err?.error ?? message;
+  } catch {
+    // ignore parse error
+  }
+  return message;
+}
+
 export function formatCents(cents: number, signed = false): string {
   const dollars = cents / 100;
   const formatted = new Intl.NumberFormat("en-US", {
