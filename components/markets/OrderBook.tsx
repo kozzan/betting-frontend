@@ -2,6 +2,7 @@
 
 import useSWR from "swr";
 import type { ApiResponse, OrderBook as OrderBookType } from "@/types/markets";
+import { DepthChart } from "./DepthChart";
 
 interface OrderBookProps {
   readonly marketId: string;
@@ -87,20 +88,23 @@ export function OrderBook({ marketId }: OrderBookProps) {
       )}
 
       {data && (
-        <div className="grid grid-cols-2 divide-x divide-border">
-          <div>
-            <p className="px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wide border-b border-border">
-              Bids (YES)
-            </p>
-            <PriceLadder levels={data.bids} side="bid" />
+        <>
+          <div className="grid grid-cols-2 divide-x divide-border">
+            <div>
+              <p className="px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wide border-b border-border">
+                Bids (YES)
+              </p>
+              <PriceLadder levels={data.bids} side="bid" />
+            </div>
+            <div>
+              <p className="px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wide border-b border-border">
+                Asks (YES)
+              </p>
+              <PriceLadder levels={data.asks} side="ask" />
+            </div>
           </div>
-          <div>
-            <p className="px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wide border-b border-border">
-              Asks (YES)
-            </p>
-            <PriceLadder levels={data.asks} side="ask" />
-          </div>
-        </div>
+          <DepthChart bids={data.bids} asks={data.asks} />
+        </>
       )}
     </div>
   );
