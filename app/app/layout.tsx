@@ -1,19 +1,7 @@
 import { cookies } from "next/headers";
+import { decodeJwtPayload } from "@/lib/auth";
 import { NavBar } from "@/components/NavBar";
 import { Toaster } from "@/components/ui/sonner";
-
-function getUsernameFromToken(token: string): string | undefined {
-  try {
-    const [, payload] = token.split(".");
-    if (!payload) return undefined;
-    const decoded = JSON.parse(
-      atob(payload.replaceAll("-", "+").replaceAll("_", "/"))
-    );
-    return decoded.username ?? decoded.sub;
-  } catch {
-    return undefined;
-  }
-}
 
 export default async function AppLayout({
   children,
@@ -22,7 +10,10 @@ export default async function AppLayout({
 }) {
   const cookieStore = await cookies();
   const token = cookieStore.get("access_token")?.value;
-  const username = token ? getUsernameFromToken(token) : undefined;
+  const decoded = token ? decodeJwtPayload(token) : null;
+  const username = typeof decoded?.username === "string"
+    ? decoded.username
+    : typeof decoded?.sub === "string" ? decoded.sub : undefined;
 
   return (
     <div className="flex flex-col min-h-screen">

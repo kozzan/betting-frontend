@@ -73,9 +73,9 @@ interface ChartContentProps {
 function ChartContent({ isLoading, error, data, marketId }: ChartContentProps) {
   if (isLoading) {
     return (
-      <div className="h-[120px] flex items-center justify-center" role="status" aria-label="Loading price history">
+      <output className="h-[120px] flex items-center justify-center" aria-label="Loading price history">
         <div className="h-5 w-5 rounded-full border-2 border-muted-foreground border-t-transparent animate-spin" />
-      </div>
+      </output>
     );
   }
   if (error) {
