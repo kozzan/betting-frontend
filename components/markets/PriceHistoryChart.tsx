@@ -63,6 +63,124 @@ function buildAreaPath(points: PricePoint[]): string {
   return `${lineParts.join(" ")} L${lastX.toFixed(2)},${bottom} L${firstX.toFixed(2)},${bottom} Z`;
 }
 
+interface ChartContentProps {
+  isLoading: boolean;
+  error: Error | undefined;
+  data: PricePoint[] | undefined;
+  marketId: string;
+}
+
+function ChartContent({ isLoading, error, data, marketId }: ChartContentProps) {
+  if (isLoading) {
+    return (
+      <div className="h-[120px] flex items-center justify-center">
+        <div className="h-5 w-5 rounded-full border-2 border-muted-foreground border-t-transparent animate-spin" />
+      </div>
+    );
+  }
+  if (error) {
+    return (
+      <div className="h-[120px] flex items-center justify-center">
+        <p className="text-xs text-muted-foreground">Failed to load chart</p>
+      </div>
+    );
+  }
+  if (!data || data.length === 0) {
+    return (
+      <div className="h-[120px] flex items-center justify-center">
+        <p className="text-sm text-muted-foreground">No trades yet</p>
+      </div>
+    );
+  }
+
+  const last = data.at(-1)!;
+  const x = PAD_LEFT + CHART_W + 3;
+  const y = pctToY(last.yesPct);
+
+  return (
+    <svg
+      viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
+      className="w-full h-[120px]"
+      aria-label="YES probability history chart"
+    >
+      <defs>
+        <linearGradient id={`area-grad-${marketId}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={GREEN} stopOpacity="0.15" />
+          <stop offset="100%" stopColor={GREEN} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+
+      {/* Gridlines */}
+      {GRIDLINES.map((pct) => {
+        const gy = pctToY(pct);
+        return (
+          <g key={pct}>
+            <line
+              x1={PAD_LEFT}
+              y1={gy}
+              x2={PAD_LEFT + CHART_W}
+              y2={gy}
+              stroke="currentColor"
+              strokeOpacity="0.08"
+              strokeWidth="1"
+            />
+            <text
+              x={PAD_LEFT - 4}
+              y={gy}
+              textAnchor="end"
+              dominantBaseline="middle"
+              fontSize="8"
+              fill="currentColor"
+              opacity="0.4"
+            >
+              {pct}
+            </text>
+          </g>
+        );
+      })}
+
+      {/* Bottom axis line */}
+      <line
+        x1={PAD_LEFT}
+        y1={PAD_TOP + CHART_H}
+        x2={PAD_LEFT + CHART_W}
+        y2={PAD_TOP + CHART_H}
+        stroke="currentColor"
+        strokeOpacity="0.12"
+        strokeWidth="1"
+      />
+
+      {/* Area fill */}
+      <path
+        d={buildAreaPath(data)}
+        fill={`url(#area-grad-${marketId})`}
+      />
+
+      {/* Line */}
+      <path
+        d={buildPath(data)}
+        fill="none"
+        stroke={GREEN}
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+        strokeLinecap="round"
+      />
+
+      {/* End label */}
+      <text
+        x={x}
+        y={y}
+        dominantBaseline="middle"
+        fontSize="8"
+        fontWeight="600"
+        fill={GREEN}
+      >
+        {Math.round(last.yesPct)}%
+      </text>
+    </svg>
+  );
+}
+
 export function PriceHistoryChart({ marketId }: PriceHistoryChartProps) {
   const [range, setRange] = useState<Range>("1D");
 
@@ -94,108 +212,12 @@ export function PriceHistoryChart({ marketId }: PriceHistoryChartProps) {
 
       {/* Chart area */}
       <div className="rounded-md border border-border bg-card overflow-hidden">
-        {isLoading ? (
-          <div className="h-[120px] flex items-center justify-center">
-            <div className="h-5 w-5 rounded-full border-2 border-muted-foreground border-t-transparent animate-spin" />
-          </div>
-        ) : error ? (
-          <div className="h-[120px] flex items-center justify-center">
-            <p className="text-xs text-muted-foreground">Failed to load chart</p>
-          </div>
-        ) : !data || data.length === 0 ? (
-          <div className="h-[120px] flex items-center justify-center">
-            <p className="text-sm text-muted-foreground">No trades yet</p>
-          </div>
-        ) : (
-          <svg
-            viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
-            className="w-full h-[120px]"
-            aria-label="YES probability history chart"
-            role="img"
-          >
-            <defs>
-              <linearGradient id={`area-grad-${marketId}`} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor={GREEN} stopOpacity="0.15" />
-                <stop offset="100%" stopColor={GREEN} stopOpacity="0" />
-              </linearGradient>
-            </defs>
-
-            {/* Gridlines */}
-            {GRIDLINES.map((pct) => {
-              const y = pctToY(pct);
-              return (
-                <g key={pct}>
-                  <line
-                    x1={PAD_LEFT}
-                    y1={y}
-                    x2={PAD_LEFT + CHART_W}
-                    y2={y}
-                    stroke="currentColor"
-                    strokeOpacity="0.08"
-                    strokeWidth="1"
-                  />
-                  <text
-                    x={PAD_LEFT - 4}
-                    y={y}
-                    textAnchor="end"
-                    dominantBaseline="middle"
-                    fontSize="8"
-                    fill="currentColor"
-                    opacity="0.4"
-                  >
-                    {pct}
-                  </text>
-                </g>
-              );
-            })}
-
-            {/* Bottom axis line */}
-            <line
-              x1={PAD_LEFT}
-              y1={PAD_TOP + CHART_H}
-              x2={PAD_LEFT + CHART_W}
-              y2={PAD_TOP + CHART_H}
-              stroke="currentColor"
-              strokeOpacity="0.12"
-              strokeWidth="1"
-            />
-
-            {/* Area fill */}
-            <path
-              d={buildAreaPath(data)}
-              fill={`url(#area-grad-${marketId})`}
-            />
-
-            {/* Line */}
-            <path
-              d={buildPath(data)}
-              fill="none"
-              stroke={GREEN}
-              strokeWidth="1.5"
-              strokeLinejoin="round"
-              strokeLinecap="round"
-            />
-
-            {/* End label */}
-            {(() => {
-              const last = data[data.length - 1];
-              const x = PAD_LEFT + CHART_W + 3;
-              const y = pctToY(last.yesPct);
-              return (
-                <text
-                  x={x}
-                  y={y}
-                  dominantBaseline="middle"
-                  fontSize="8"
-                  fontWeight="600"
-                  fill={GREEN}
-                >
-                  {Math.round(last.yesPct)}%
-                </text>
-              );
-            })()}
-          </svg>
-        )}
+        <ChartContent
+          isLoading={isLoading}
+          error={error}
+          data={data}
+          marketId={marketId}
+        />
       </div>
     </div>
   );
