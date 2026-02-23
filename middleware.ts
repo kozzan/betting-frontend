@@ -4,7 +4,7 @@ import { isTokenExpired } from "@/lib/auth";
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // 1. ALWAYS allow internal Next.js assets and static files
+  // 1. Skip middleware for internal Next.js files and static assets
   if (
       pathname.startsWith('/_next') ||
       pathname.startsWith('/api') ||
@@ -13,35 +13,21 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // 2. Define your protected routes
-  const protectedPaths = [
-    "/app/orders",
-    "/app/portfolio",
-    "/app/wallet",
-    "/app/profile",
-    "/app/markets/create",
-    "/app/my-markets",
-    "/app/admin",
-  ];
+  // 2. Auth logic for your app routes
+  const token = request.cookies.get("access_token")?.value;
 
-  const isProtected = protectedPaths.some(path => pathname.startsWith(path));
-
-  // 3. Check auth ONLY for protected routes
-  if (isProtected) {
-    const token = request.cookies.get("access_token")?.value;
-
-    if (!token || isTokenExpired(token)) {
-      const loginUrl = new URL("/login", request.url);
-      loginUrl.searchParams.set("from", pathname);
-      return NextResponse.redirect(loginUrl);
-    }
+  if (!token || isTokenExpired(token)) {
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("from", pathname);
+    return NextResponse.redirect(loginUrl);
   }
 
   return NextResponse.next();
 }
 
-// Simplify the matcher to catch everything; the logic inside the function
-// will handle the filtering more reliably than a complex regex.
+// This matcher tells Next.js which paths should trigger the middleware
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'], [cite: 1]
+  matcher: [
+    "/app/:path*", // Protect all routes starting with /app
+  ],
 };
