@@ -25,14 +25,14 @@ export function MarketTradeSection({ marketId, isAuthenticated, fromPath }: Mark
   const [activeSide, setActiveSide] = useState<OrderSide | null>(null);
   const router = useRouter();
 
-  const { data: book } = useSWR(
+  const { data: book, error: bookError } = useSWR(
     `/api/markets/${marketId}/orders`,
     orderBookFetcher,
     { refreshInterval: 5000 }
   );
 
-  const yesPct = book ? calcImpliedProbability(book) : null;
-  const noPct = yesPct !== null ? 100 - yesPct : null;
+  const yesPct = bookError || !book ? null : calcImpliedProbability(book);
+  const noPct = yesPct === null ? null : 100 - yesPct;
 
   function handleSideClick(side: OrderSide) {
     if (!isAuthenticated) {
@@ -50,13 +50,13 @@ export function MarketTradeSection({ marketId, isAuthenticated, fromPath }: Mark
           <div className="px-4 py-3 text-center">
             <p className="text-xs text-muted-foreground uppercase tracking-wide mb-0.5">YES</p>
             <p className="text-xl font-semibold tabular-nums text-emerald-600">
-              {yesPct !== null ? `${yesPct}%` : "—"}
+              {yesPct === null ? "— %" : `${yesPct}%`}
             </p>
           </div>
           <div className="px-4 py-3 text-center">
             <p className="text-xs text-muted-foreground uppercase tracking-wide mb-0.5">NO</p>
             <p className="text-xl font-semibold tabular-nums text-red-600">
-              {noPct !== null ? `${noPct}%` : "—"}
+              {noPct === null ? "— %" : `${noPct}%`}
             </p>
           </div>
         </div>

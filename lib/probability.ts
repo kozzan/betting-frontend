@@ -1,7 +1,7 @@
 import type { OrderBook } from "@/types/markets";
 
 /**
- * Derives the implied YES probability (1–99) from the order book mid-price.
+ * Derives the implied YES probability (0–100) from the order book mid-price.
  * Falls back to best bid or best ask alone when only one side has orders.
  * Returns null when the book is empty.
  */

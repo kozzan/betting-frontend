@@ -16,11 +16,15 @@ async function fetcher(url: string): Promise<OrderBook> {
 }
 
 export function MarketProbabilityBadge({ marketId }: MarketProbabilityBadgeProps) {
-  const { data: book } = useSWR(
+  const { data: book, error } = useSWR(
     `/api/markets/${marketId}/orders`,
     fetcher,
     { refreshInterval: 30_000 }
   );
+
+  if (error) {
+    return <span className="text-muted-foreground text-xs tabular-nums" title="Failed to load probability">— %</span>;
+  }
 
   const yesPct = book ? calcImpliedProbability(book) : null;
 
