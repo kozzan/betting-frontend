@@ -187,14 +187,24 @@ const FALLBACK_ORDER_BOOK: OrderBook = { marketId: "mock-1", bids: [], asks: [] 
 /** Returns a fully-wrapped ApiResponse mock payload for a given backend path,
  *  or null if the path is not covered by fixtures. */
 export function getMockResponse(path: string): ApiResponse<unknown> | null {
-  const cleanPath = path.split("?")[0];
+  const [cleanPath, rawQs = ""] = path.split("?");
+  const qs = new URLSearchParams(rawQs);
 
   // Markets list — /api/v1/markets  or  /api/v1/markets/search
   if (cleanPath === "/api/v1/markets" || cleanPath === "/api/v1/markets/search") {
+    const status = qs.get("status");
+    const category = qs.get("category");
+    const q = qs.get("q")?.toLowerCase();
+
+    let filtered = MARKETS;
+    if (status) filtered = filtered.filter((m) => m.status === status);
+    if (category) filtered = filtered.filter((m) => m.category === category);
+    if (q) filtered = filtered.filter((m) => m.title.toLowerCase().includes(q));
+
     const paged: PagedResponse<MarketSummary> = {
-      content: MARKETS,
-      totalElements: MARKETS.length,
-      totalPages: 1,
+      content: filtered,
+      totalElements: filtered.length,
+      totalPages: Math.max(1, Math.ceil(filtered.length / 20)),
       page: 0,
       size: 20,
     };
