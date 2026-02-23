@@ -1,43 +1,38 @@
-# ── Stage 1: Install dependencies ────────────────────────────────────────────
-FROM oven/bun:1 AS deps
+# ── Stage 1: Deps ──
+FROM oven/bun:1-alpine AS deps
 WORKDIR /app
 COPY package.json bun.lock* ./
 RUN bun install --frozen-lockfile
 
-# ── Stage 2: Build ────────────────────────────────────────────────────────────
-FROM oven/bun:1 AS builder
+# ── Stage 2: Build ──
+FROM oven/bun:1-alpine AS builder
+# THIS IS THE MISSING PIECE for Tailwind v4 on Alpine/Bun
+RUN apk add --no-cache libc6-compat
+
 WORKDIR /app
-# 1. Copy node_modules from deps stage
 COPY --from=deps /app/node_modules ./node_modules
-# 2. Copy all project files (including tailwind and postcss configs)
 COPY . .
 
-# Set environment variables for the build
+# Ensure the config exists during build
+RUN ls -l postcss.config.mjs
+
 ARG NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NODE_ENV=production
 
-# Run the build to generate the standalone folder and static assets
 RUN bun run build
 
-# ── Stage 3: Runner ───────────────────────────────────────────────────────────
+# ── Stage 3: Runner ──
 FROM node:20-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
+RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
 
-RUN addgroup --system --gid 1001 nodejs \
- && adduser  --system --uid 1001 nextjs
-
-# 1. Copy the standalone output
+# Copy standalone output
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-
-# 2. Copy static files (The CSS/JS chunks)
+# Copy static assets (Must be in .next/static for standalone)
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-
-# 3. Copy public folder ONLY if it exists (using a conditional check)
-# Alternatively, create a dummy folder in Stage 2 to prevent this error
 COPY --from=builder --chown=nextjs:nodejs /app/public* ./public/
 
 USER nextjs
