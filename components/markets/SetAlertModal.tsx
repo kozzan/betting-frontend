@@ -72,6 +72,9 @@ export function SetAlertModal({
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
+      onKeyDown={(e) => {
+        if (e.key === "Escape") onClose();
+      }}
     >
       <div className="relative w-full max-w-sm mx-4 rounded-lg border border-border bg-background shadow-xl">
         {/* Header */}
