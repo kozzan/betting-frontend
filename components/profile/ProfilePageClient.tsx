@@ -94,6 +94,8 @@ export function ProfilePageClient({ profile }: ProfilePageClientProps) {
     }
   }
 
+  const visibilityLabel = savingVisibility ? "Saving…" : publicPnl ? "Public" : "Private";
+
   return (
     <div className="space-y-6 max-w-lg">
       {/* Account info */}
@@ -161,7 +163,7 @@ export function ProfilePageClient({ profile }: ProfilePageClientProps) {
             disabled={savingVisibility}
             onClick={handleVisibilityToggle}
           >
-            {savingVisibility ? "Saving…" : publicPnl ? "Public" : "Private"}
+            {visibilityLabel}
           </Button>
         </div>
       </div>

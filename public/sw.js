@@ -5,14 +5,14 @@ const APP_SHELL = [
   '/app/leaderboard',
 ];
 
-self.addEventListener('install', (event) => {
+globalThis.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL))
   );
-  self.skipWaiting();
+  globalThis.skipWaiting();
 });
 
-self.addEventListener('activate', (event) => {
+globalThis.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(
@@ -22,10 +22,10 @@ self.addEventListener('activate', (event) => {
       )
     )
   );
-  self.clients.claim();
+  globalThis.clients.claim();
 });
 
-self.addEventListener('fetch', (event) => {
+globalThis.addEventListener('fetch', (event) => {
   // Network first for API calls
   if (event.request.url.includes('/api/')) {
     event.respondWith(fetch(event.request));

@@ -18,7 +18,7 @@ export function CollapsiblePastEvents({ events }: CollapsiblePastEventsProps) {
         onClick={() => setOpen((v) => !v)}
         className="flex items-center gap-2 text-lg font-medium hover:text-muted-foreground transition-colors"
       >
-        Past Events
+        Past Events{" "}
         <span className="text-sm text-muted-foreground font-normal">({events.length})</span>
         {open ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
       </button>

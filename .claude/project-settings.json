@@ -2,6 +2,7 @@
   "repo": "kozzan/betting-frontend",
   "sonar": {
     "organization": "kozzan",
-    "projectKey": "kozzan_betting-frontend"
+    "projectKey": "kozzan_betting-frontend",
+    "token": "f9a5ea6d4c70774b441121fca02320213d7c04c1"
   }
 }

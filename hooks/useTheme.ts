@@ -17,22 +17,22 @@ interface UseThemeReturn {
 }
 
 export function useTheme(): UseThemeReturn {
-  const [theme, setThemeState] = useState<Theme>("system");
+  const [activeTheme, setActiveTheme] = useState<Theme>("system");
   const [resolvedTheme, setResolvedTheme] = useState<"light" | "dark">("light");
 
   // Initialise from localStorage on mount (client only)
   useEffect(() => {
     const saved = getSavedTheme();
-    setThemeState(saved);
+    setActiveTheme(saved);
     applyTheme(saved);
     setResolvedTheme(saved === "system" ? getSystemTheme() : saved);
   }, []);
 
   // React to OS colour-scheme changes when theme is "system"
   useEffect(() => {
-    if (theme !== "system") return;
+    if (activeTheme !== "system") return;
 
-    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    const mq = globalThis.window.matchMedia("(prefers-color-scheme: dark)");
     const handler = () => {
       const sys = getSystemTheme();
       setResolvedTheme(sys);
@@ -40,10 +40,10 @@ export function useTheme(): UseThemeReturn {
     };
     mq.addEventListener("change", handler);
     return () => mq.removeEventListener("change", handler);
-  }, [theme]);
+  }, [activeTheme]);
 
   const setTheme = useCallback((next: Theme) => {
-    setThemeState(next);
+    setActiveTheme(next);
     saveTheme(next);
     applyTheme(next);
     setResolvedTheme(next === "system" ? getSystemTheme() : next);
@@ -53,5 +53,5 @@ export function useTheme(): UseThemeReturn {
     setTheme(resolvedTheme === "dark" ? "light" : "dark");
   }, [resolvedTheme, setTheme]);
 
-  return { theme, resolvedTheme, setTheme, toggleTheme };
+  return { theme: activeTheme, resolvedTheme, setTheme, toggleTheme };
 }

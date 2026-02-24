@@ -19,8 +19,8 @@ function centsToDisplay(cents: number | null): string {
 }
 
 function displayToCents(value: string): number | null {
-  const num = parseFloat(value);
-  if (isNaN(num) || num < 0) return null;
+  const num = Number.parseFloat(value);
+  if (Number.isNaN(num) || num < 0) return null;
   return Math.round(num * 100);
 }
 

@@ -135,6 +135,9 @@ export function BulkQuoteForm({ marketId, onSuccess }: BulkQuoteFormProps) {
     }
   }
 
+  const quoteSuffix = rows.length > 1 ? "s" : "";
+  const submitLabel = submitting ? "Submitting…" : `Submit ${rows.length} Quote${quoteSuffix}`;
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
@@ -241,7 +244,7 @@ export function BulkQuoteForm({ marketId, onSuccess }: BulkQuoteFormProps) {
           + Add Row
         </Button>
         <Button type="submit" size="sm" disabled={submitting}>
-          {submitting ? "Submitting…" : `Submit ${rows.length} Quote${rows.length > 1 ? "s" : ""}`}
+          {submitLabel}
         </Button>
         <span className="text-xs text-muted-foreground">
           {rows.length}/10 rows

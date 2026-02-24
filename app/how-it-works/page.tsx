@@ -97,8 +97,8 @@ export default function HowItWorksPage() {
           <section key={title} className="space-y-3">
             <h2 className="text-lg font-semibold">{title}</h2>
             <div className="space-y-3">
-              {body.split("\n\n").map((paragraph, i) => (
-                <p key={i} className="text-sm text-muted-foreground leading-relaxed">
+              {body.split("\n\n").map((paragraph) => (
+                <p key={paragraph.slice(0, 40)} className="text-sm text-muted-foreground leading-relaxed">
                   {paragraph}
                 </p>
               ))}

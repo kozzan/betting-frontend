@@ -88,12 +88,9 @@ export function PlaceOutcomeOrderPanel({
 
       const json: ApiResponse<MultiOutcomeOrderResponse> = await res.json();
       const order = json.data;
-      const statusMsg =
-        order.status === "FILLED"
-          ? "Fully filled"
-          : order.status === "PARTIALLY_FILLED"
-          ? "Partially filled"
-          : "Open";
+      let statusMsg = "Open";
+      if (order.status === "FILLED") statusMsg = "Fully filled";
+      else if (order.status === "PARTIALLY_FILLED") statusMsg = "Partially filled";
 
       toast.success(`Order placed — ${statusMsg}`);
       setPrice("");

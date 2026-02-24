@@ -21,8 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { getErrorMessage } from "@/lib/format";
-import { formatDate } from "@/lib/format";
+import { getErrorMessage, formatDate } from "@/lib/format";
 import type { ResponsibleGamblingSettings } from "@/types/responsible-gambling";
 
 const DURATION_OPTIONS = [
@@ -48,7 +47,7 @@ export function CoolingOffSection({ settings, onUpdate }: CoolingOffSectionProps
       const res = await fetch("/api/me/responsible-gambling/cooling-off", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ durationDays: parseInt(duration, 10) }),
+        body: JSON.stringify({ durationDays: Number.parseInt(duration, 10) }),
       });
       if (!res.ok) {
         toast.error(await getErrorMessage(res));
@@ -77,11 +76,11 @@ export function CoolingOffSection({ settings, onUpdate }: CoolingOffSectionProps
       {!settings.isInCoolingOff && (
         <div className="flex items-end gap-3">
           <div className="space-y-1.5">
-            <label className="text-xs text-muted-foreground uppercase tracking-wide block">
+            <label htmlFor="cooling-off-duration" className="text-xs text-muted-foreground uppercase tracking-wide block">
               Duration
             </label>
             <Select value={duration} onValueChange={setDuration}>
-              <SelectTrigger className="w-40">
+              <SelectTrigger id="cooling-off-duration" className="w-40">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

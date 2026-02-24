@@ -25,7 +25,7 @@ export function SetAlertModal({
   const { createAlert } = useAlerts();
   const [direction, setDirection] = useState<AlertDirection>("ABOVE");
   const [threshold, setThreshold] = useState(
-    currentPriceCents !== undefined ? String(currentPriceCents) : ""
+    currentPriceCents === undefined ? "" : String(currentPriceCents)
   );
   const [submitting, setSubmitting] = useState(false);
 
@@ -55,6 +55,9 @@ export function SetAlertModal({
   return (
     /* Backdrop */
     <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Set Price Alert"
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();

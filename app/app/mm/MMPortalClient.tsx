@@ -195,7 +195,7 @@ export function MMPortalClient({ initialOrders }: MMPortalClientProps) {
                     </Button>
                     <CancelAllMarketButton
                       marketId={marketId}
-                      onSuccess={() => void mutateOrders()}
+                      onSuccess={() => { mutateOrders(); }}
                     />
                   </div>
                 </div>
@@ -213,11 +213,12 @@ export function MMPortalClient({ initialOrders }: MMPortalClientProps) {
         <div className="rounded-md border border-border p-4 space-y-4">
           {/* Market ID direct entry */}
           <div className="space-y-1.5">
-            <label className="text-xs text-muted-foreground">
+            <label htmlFor="quick-market-id" className="text-xs text-muted-foreground">
               Market ID (paste directly)
             </label>
             <div className="flex gap-2">
               <input
+                id="quick-market-id"
                 type="text"
                 value={quickMarketId}
                 onChange={(e) => setQuickMarketId(e.target.value)}
@@ -235,10 +236,11 @@ export function MMPortalClient({ initialOrders }: MMPortalClientProps) {
 
           {/* Market search */}
           <div className="space-y-1.5">
-            <label className="text-xs text-muted-foreground">
+            <label htmlFor="market-search" className="text-xs text-muted-foreground">
               Search markets by title
             </label>
             <input
+              id="market-search"
               type="text"
               value={marketSearch}
               onChange={(e) => setMarketSearch(e.target.value)}
@@ -261,7 +263,7 @@ export function MMPortalClient({ initialOrders }: MMPortalClientProps) {
                 ))}
               </div>
             )}
-            {searchResults && searchResults.length === 0 && marketSearch.length >= 2 && (
+            {searchResults?.length === 0 && marketSearch.length >= 2 && (
               <p className="text-xs text-muted-foreground pt-1">No markets found.</p>
             )}
           </div>

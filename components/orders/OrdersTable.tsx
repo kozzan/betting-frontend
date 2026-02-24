@@ -146,6 +146,9 @@ export function OrdersTable({ orders, onCancelled }: OrdersTableProps) {
               order.status === "OPEN" || order.status === "PARTIALLY_FILLED";
             const isPendingTrigger = order.status === "PENDING_TRIGGER";
             const isCancellable = isActive || isPendingTrigger;
+            let statusLabel = order.status as string;
+            if (order.status === "PARTIALLY_FILLED") statusLabel = "PARTIAL";
+            else if (order.status === "PENDING_TRIGGER") statusLabel = "PENDING TRIGGER";
             return (
               <tr key={order.id} className="hover:bg-muted/30 transition-colors">
                 <td className="px-4 py-3">
@@ -178,11 +181,7 @@ export function OrdersTable({ orders, onCancelled }: OrdersTableProps) {
                 </td>
                 <td className="px-4 py-3">
                   <Badge variant={STATUS_VARIANTS[order.status]}>
-                    {order.status === "PARTIALLY_FILLED"
-                      ? "PARTIAL"
-                      : order.status === "PENDING_TRIGGER"
-                      ? "PENDING TRIGGER"
-                      : order.status}
+                    {statusLabel}
                   </Badge>
                 </td>
                 <td className="px-4 py-3 hidden lg:table-cell tabular-nums text-muted-foreground">

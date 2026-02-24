@@ -22,7 +22,7 @@ function timeAgo(iso: string): string {
   return `${days}d ago`;
 }
 
-function NotificationIcon({ type }: { type: NotificationType }) {
+function NotificationIcon({ type }: { readonly type: NotificationType }) {
   switch (type) {
     case "ORDER_FILLED":
       return <CheckCircle className="size-4 text-emerald-500 shrink-0" />;

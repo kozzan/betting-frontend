@@ -37,7 +37,7 @@ export function ConditionalOrderToggle({
   }
 
   const triggerInputValue =
-    triggerPriceCents !== null ? String(triggerPriceCents) : "";
+    triggerPriceCents === null ? "" : String(triggerPriceCents);
 
   return (
     <div className="space-y-3">

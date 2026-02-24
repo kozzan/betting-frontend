@@ -35,7 +35,7 @@ export function RealityCheckSection({ settings, onUpdate }: RealityCheckSectionP
   async function handleSave() {
     setSaving(true);
     try {
-      const intervalMins = enabled ? parseInt(interval, 10) : null;
+      const intervalMins = enabled ? Number.parseInt(interval, 10) : null;
       const res = await fetch("/api/me/responsible-gambling/reality-check", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -55,7 +55,7 @@ export function RealityCheckSection({ settings, onUpdate }: RealityCheckSectionP
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-3">
-        <label className="relative inline-flex items-center cursor-pointer">
+        <label className="relative inline-flex items-center cursor-pointer" aria-label={enabled ? "Disable reality check" : "Enable reality check"}>
           <input
             type="checkbox"
             className="sr-only peer"
@@ -71,11 +71,11 @@ export function RealityCheckSection({ settings, onUpdate }: RealityCheckSectionP
 
       {enabled && (
         <div className="space-y-1.5">
-          <label className="text-xs text-muted-foreground uppercase tracking-wide block">
+          <label htmlFor="reality-check-interval" className="text-xs text-muted-foreground uppercase tracking-wide block">
             Check interval
           </label>
           <Select value={interval} onValueChange={setInterval}>
-            <SelectTrigger className="w-52">
+            <SelectTrigger id="reality-check-interval" className="w-52">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

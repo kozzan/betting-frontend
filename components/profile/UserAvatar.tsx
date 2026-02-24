@@ -7,7 +7,7 @@ interface UserAvatarProps {
 function usernameToHue(username: string): number {
   let hash = 0;
   for (let i = 0; i < username.length; i++) {
-    hash = (hash * 31 + username.charCodeAt(i)) >>> 0;
+    hash = (hash * 31 + username.codePointAt(i) ?? 0) >>> 0;
   }
   return hash % 360;
 }

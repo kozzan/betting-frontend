@@ -55,7 +55,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function EventDetailPage({ params, searchParams }: PageProps) {
   const { id } = await params;
   const { page: pageParam } = await searchParams;
-  const page = Math.max(0, parseInt(pageParam ?? "0", 10));
+  const page = Math.max(0, Number.parseInt(pageParam ?? "0", 10));
 
   const [event, marketsData] = await Promise.all([
     fetchEvent(id),

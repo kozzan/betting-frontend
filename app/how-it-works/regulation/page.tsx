@@ -172,7 +172,7 @@ export default function RegulationPage() {
               </a>
               <span className="text-muted-foreground">{description}</span>
               {tel && (
-                <a href={`tel:${tel.replace(/[^+\d]/g, "")}`} className="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground">
+                <a href={`tel:${tel.replaceAll(/[^+\d]/g, "")}`} className="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground">
                   <Phone className="size-3" />
                   {tel}
                 </a>

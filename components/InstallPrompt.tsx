@@ -13,7 +13,7 @@ export function InstallPrompt() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (typeof globalThis.window === 'undefined') return;
 
     const dismissed = localStorage.getItem(DISMISSED_KEY);
     if (dismissed) return;
@@ -24,8 +24,8 @@ export function InstallPrompt() {
       setVisible(true);
     };
 
-    window.addEventListener('beforeinstallprompt', handler);
-    return () => window.removeEventListener('beforeinstallprompt', handler);
+    globalThis.window.addEventListener('beforeinstallprompt', handler);
+    return () => globalThis.window.removeEventListener('beforeinstallprompt', handler);
   }, []);
 
   const handleInstall = async () => {
@@ -46,8 +46,7 @@ export function InstallPrompt() {
   if (!visible) return null;
 
   return (
-    <div
-      role="banner"
+    <header
       className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 rounded-lg border border-border bg-background px-4 py-3 shadow-lg text-sm max-w-sm w-[calc(100%-2rem)]"
     >
       <span className="flex-1 text-foreground">
@@ -66,6 +65,6 @@ export function InstallPrompt() {
       >
         ✕
       </button>
-    </div>
+    </header>
   );
 }

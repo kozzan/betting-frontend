@@ -55,7 +55,7 @@ async function fetchPublicProfile(username: string): Promise<PublicProfile | nul
 }
 
 interface Props {
-  params: Promise<{ username: string }>;
+  readonly params: Promise<{ username: string }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

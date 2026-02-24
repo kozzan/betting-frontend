@@ -11,7 +11,6 @@ import { useMMOrders } from "@/hooks/useMMOrders";
 
 interface MMMarketPageClientProps {
   readonly marketId: string;
-  readonly marketTitle: string;
 }
 
 async function fillHistoryFetcher(url: string): Promise<Order[]> {
@@ -66,7 +65,7 @@ export function MMMarketPageClient({ marketId }: MMMarketPageClientProps) {
           </p>
         </div>
         <div className="rounded-md border border-border p-4">
-          <BulkQuoteForm marketId={marketId} onSuccess={() => void mutate()} />
+          <BulkQuoteForm marketId={marketId} onSuccess={() => { mutate(); }} />
         </div>
       </section>
 
@@ -84,7 +83,7 @@ export function MMMarketPageClient({ marketId }: MMMarketPageClientProps) {
           <CancelReplaceForm
             marketId={marketId}
             orders={orders}
-            onSuccess={() => void mutate()}
+            onSuccess={() => { mutate(); }}
           />
         </div>
       </section>
@@ -95,13 +94,15 @@ export function MMMarketPageClient({ marketId }: MMMarketPageClientProps) {
           Fill History (Last 20)
         </h2>
 
-        {fillsLoading ? (
+        {fillsLoading && (
           <p className="text-sm text-muted-foreground">Loading fills…</p>
-        ) : !fillHistory || fillHistory.length === 0 ? (
+        )}
+        {!fillsLoading && (!fillHistory || fillHistory.length === 0) && (
           <div className="rounded-md border border-border px-4 py-8 text-center text-sm text-muted-foreground">
             No fills on this market yet.
           </div>
-        ) : (
+        )}
+        {!fillsLoading && fillHistory && fillHistory.length > 0 && (
           <div className="rounded-md border border-border overflow-hidden">
             <table className="w-full text-sm">
               <thead className="bg-muted/50">

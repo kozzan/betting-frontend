@@ -80,7 +80,8 @@ function buildMockFeed(): ActivityEvent[] {
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const qs = searchParams.toString();
-  const backendPath = `/api/v1/activity-feed${qs ? `?${qs}` : ""}`;
+  const query = qs ? `?${qs}` : "";
+  const backendPath = `/api/v1/activity-feed${query}`;
 
   try {
     const headers = await buildAuthHeaders();

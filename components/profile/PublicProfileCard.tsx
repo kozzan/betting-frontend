@@ -6,7 +6,7 @@ interface PublicProfileCardProps {
   readonly profile: PublicProfile;
 }
 
-function StatItem({ label, value }: { label: string; value: string }) {
+function StatItem({ label, value }: { readonly label: string; readonly value: string }) {
   return (
     <div className="flex flex-col items-center gap-0.5">
       <span className="text-xl font-semibold tabular-nums">{value}</span>
@@ -21,12 +21,9 @@ export function PublicProfileCard({ profile }: PublicProfileCardProps) {
     year: "numeric",
   });
 
-  const pnlColor =
-    profile.pnlCents !== undefined && profile.pnlCents > 0
-      ? "text-emerald-600 dark:text-emerald-400"
-      : profile.pnlCents !== undefined && profile.pnlCents < 0
-      ? "text-red-600 dark:text-red-400"
-      : "";
+  let pnlColor = "";
+  if (profile.pnlCents !== undefined && profile.pnlCents > 0) pnlColor = "text-emerald-600 dark:text-emerald-400";
+  else if (profile.pnlCents !== undefined && profile.pnlCents < 0) pnlColor = "text-red-600 dark:text-red-400";
 
   return (
     <div className="rounded-md border border-border p-6 space-y-6">

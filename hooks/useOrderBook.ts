@@ -44,6 +44,22 @@ export function useOrderBook(marketId: string): OrderBookState {
   const clientRef = useRef<Client | null>(null);
   const subscriptionRef = useRef<StompSubscription | null>(null);
 
+  const handleOrderBookMessage = useCallback(
+    (message: { body: string }) => {
+      try {
+        const update: OrderBook = JSON.parse(message.body);
+        setState((prev) => ({
+          ...prev,
+          bids: update.bids ?? prev.bids,
+          asks: update.asks ?? prev.asks,
+        }));
+      } catch {
+        // malformed message — ignore
+      }
+    },
+    []
+  );
+
   const connect = useCallback(
     async (token: string) => {
       const client = createStompClient(token);
@@ -53,18 +69,7 @@ export function useOrderBook(marketId: string): OrderBookState {
 
         subscriptionRef.current = client.subscribe(
           `/topic/markets/${marketId}/orderbook`,
-          (message) => {
-            try {
-              const update: OrderBook = JSON.parse(message.body);
-              setState((prev) => ({
-                ...prev,
-                bids: update.bids ?? prev.bids,
-                asks: update.asks ?? prev.asks,
-              }));
-            } catch {
-              // malformed message — ignore
-            }
-          }
+          handleOrderBookMessage
         );
       };
 
@@ -79,7 +84,7 @@ export function useOrderBook(marketId: string): OrderBookState {
       clientRef.current = client;
       client.activate();
     },
-    [marketId]
+    [marketId, handleOrderBookMessage]
   );
 
   useEffect(() => {

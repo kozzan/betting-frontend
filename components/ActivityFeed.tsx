@@ -5,11 +5,13 @@ import { useActivityFeed } from "@/hooks/useActivityFeed";
 import { ActivityFeedItem } from "./ActivityFeedItem";
 import type { ActivityEvent } from "@/types/activity";
 
+const SKELETON_IDS = ["sk-a", "sk-b", "sk-c", "sk-d", "sk-e"];
+
 function FeedSkeleton() {
   return (
     <div className="space-y-1 p-2">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <div key={i} className="flex items-start gap-3 px-3 py-2.5">
+      {SKELETON_IDS.map((id) => (
+        <div key={id} className="flex items-start gap-3 px-3 py-2.5">
           <div className="w-5 h-5 rounded-full bg-muted animate-pulse shrink-0 mt-0.5" />
           <div className="flex-1 space-y-1.5">
             <div className="h-3.5 rounded bg-muted animate-pulse w-3/4" />
@@ -52,13 +54,13 @@ export function ActivityFeed() {
         <span className="text-xs text-muted-foreground">Live &bull; 10s</span>
       </div>
 
-      {isLoading ? (
-        <FeedSkeleton />
-      ) : events.length === 0 ? (
+      {isLoading && <FeedSkeleton />}
+      {!isLoading && events.length === 0 && (
         <p className="text-sm text-muted-foreground text-center py-8 px-4">
           No recent activity.
         </p>
-      ) : (
+      )}
+      {!isLoading && events.length > 0 && (
         <div className="divide-y divide-border/50 max-h-[400px] overflow-y-auto">
           {events.map((event: ActivityEvent) => (
             <ActivityFeedItem

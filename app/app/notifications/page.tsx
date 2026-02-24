@@ -33,9 +33,9 @@ export default function NotificationsPage() {
           type="button"
           onClick={() => setUnreadOnly(false)}
           className={`px-3 py-1.5 text-sm transition-colors border-b-2 -mb-px ${
-            !unreadOnly
-              ? "border-primary text-foreground font-medium"
-              : "border-transparent text-muted-foreground hover:text-foreground"
+            unreadOnly
+              ? "border-transparent text-muted-foreground hover:text-foreground"
+              : "border-primary text-foreground font-medium"
           }`}
         >
           All
@@ -55,21 +55,21 @@ export default function NotificationsPage() {
 
       {/* Notifications list */}
       <div className="rounded-md border border-border divide-y divide-border overflow-hidden">
-        {isLoading ? (
+        {isLoading && (
           <p className="py-10 text-center text-sm text-muted-foreground">Loading…</p>
-        ) : notifications.length === 0 ? (
+        )}
+        {!isLoading && notifications.length === 0 && (
           <p className="py-10 text-center text-sm text-muted-foreground">
             {unreadOnly ? "No unread notifications" : "No notifications yet"}
           </p>
-        ) : (
-          notifications.map((n) => (
-            <NotificationItem
-              key={n.id}
-              notification={n}
-              onClick={() => handleNotificationClick(n.id, n.referenceType, n.referenceId)}
-            />
-          ))
         )}
+        {!isLoading && notifications.length > 0 && notifications.map((n) => (
+          <NotificationItem
+            key={n.id}
+            notification={n}
+            onClick={() => handleNotificationClick(n.id, n.referenceType, n.referenceId)}
+          />
+        ))}
       </div>
     </div>
   );

@@ -3,8 +3,8 @@ export type Theme = "light" | "dark" | "system";
 export const THEME_STORAGE_KEY = "theme";
 
 export function getSystemTheme(): "light" | "dark" {
-  if (typeof window === "undefined") return "light";
-  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  if (typeof globalThis.window === "undefined") return "light";
+  return globalThis.window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
 
 export function resolveTheme(theme: Theme): "light" | "dark" {

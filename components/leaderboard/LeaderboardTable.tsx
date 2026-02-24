@@ -34,8 +34,8 @@ export function LeaderboardTableSkeleton() {
           </tr>
         </thead>
         <tbody>
-          {Array.from({ length: 10 }).map((_, i) => (
-            <SkeletonRow key={i} />
+          {Array.from({ length: 10 }, (_, i) => (
+            <SkeletonRow key={`skeleton-${i}`} />
           ))}
         </tbody>
       </table>
@@ -67,12 +67,9 @@ export function LeaderboardTable({ entries, currentUserId }: LeaderboardTablePro
         <tbody>
           {entries.map((entry) => {
             const isCurrentUser = currentUserId && entry.userId === currentUserId;
-            const pnlColor =
-              entry.pnlCents > 0
-                ? "text-emerald-600 dark:text-emerald-400"
-                : entry.pnlCents < 0
-                ? "text-red-600 dark:text-red-400"
-                : "";
+            let pnlColor = "";
+            if (entry.pnlCents > 0) pnlColor = "text-emerald-600 dark:text-emerald-400";
+            else if (entry.pnlCents < 0) pnlColor = "text-red-600 dark:text-red-400";
 
             return (
               <tr
