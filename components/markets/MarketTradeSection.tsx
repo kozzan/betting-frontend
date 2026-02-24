@@ -4,12 +4,14 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import useSWR from "swr";
 import { PlaceOrderPanel } from "@/components/orders/PlaceOrderPanel";
+import { AlertButton } from "@/components/markets/AlertButton";
 import { calcImpliedProbability } from "@/lib/probability";
 import type { ApiResponse, OrderBook } from "@/types/markets";
 import type { OrderSide } from "@/types/orders";
 
 interface MarketTradeSectionProps {
   readonly marketId: string;
+  readonly marketTitle: string;
   readonly isAuthenticated: boolean;
   readonly fromPath: string;
 }
@@ -21,7 +23,7 @@ async function orderBookFetcher(url: string): Promise<OrderBook> {
   return json.data;
 }
 
-export function MarketTradeSection({ marketId, isAuthenticated, fromPath }: MarketTradeSectionProps) {
+export function MarketTradeSection({ marketId, marketTitle, isAuthenticated, fromPath }: MarketTradeSectionProps) {
   const [activeSide, setActiveSide] = useState<OrderSide | null>(null);
   const router = useRouter();
 
@@ -87,6 +89,17 @@ export function MarketTradeSection({ marketId, isAuthenticated, fromPath }: Mark
           Buy NO
         </button>
       </div>
+
+      {/* Alert button — shown to authenticated users */}
+      {isAuthenticated && (
+        <div className="flex justify-end">
+          <AlertButton
+            marketId={marketId}
+            marketTitle={marketTitle}
+            currentPriceCents={yesPct ?? undefined}
+          />
+        </div>
+      )}
 
       {activeSide && (
         <PlaceOrderPanel

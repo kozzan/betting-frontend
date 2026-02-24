@@ -1,0 +1,16 @@
+PWA icon assets required in this directory:
+
+  icon-192.png  — 192x192 px PNG, used as the standard home screen icon
+  icon-512.png  — 512x512 px PNG, used for splash screens and maskable icon
+
+Both icons are referenced from app/manifest.ts.
+
+The maskable icon variant (icon-512.png) should have safe-zone padding of ~10%
+around the logo so that it renders correctly when clipped to a circle or
+squircle by the OS.
+
+Recommended tools for generating icons:
+  - https://maskable.app/editor  (maskable safe-zone preview)
+  - https://realfavicongenerator.net  (full icon set generation)
+
+Also place a 1200x630 px PNG at public/og-image.png for Open Graph previews.

@@ -1,18 +1,11 @@
 "use client";
 
-import useSWR from "swr";
-import type { ApiResponse, OrderBook as OrderBookType } from "@/types/markets";
+import type { OrderBook as OrderBookType } from "@/types/markets";
+import { useOrderBook } from "@/hooks/useOrderBook";
 import { DepthChart } from "./DepthChart";
 
 interface OrderBookProps {
   readonly marketId: string;
-}
-
-async function fetcher(url: string): Promise<OrderBookType> {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error("Failed to load order book");
-  const json: ApiResponse<OrderBookType> = await res.json();
-  return json.data;
 }
 
 function PriceLadder({
@@ -48,7 +41,11 @@ function PriceLadder({
               }`}
               style={{ width: `${pct}%` }}
             />
-            <span className={`relative font-mono font-medium ${isBid ? "text-emerald-600" : "text-red-600"}`}>
+            <span
+              className={`relative font-mono font-medium ${
+                isBid ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"
+              }`}
+            >
               {priceDisplay}
             </span>
             <span className="relative text-muted-foreground">
@@ -61,49 +58,55 @@ function PriceLadder({
   );
 }
 
-export function OrderBook({ marketId }: OrderBookProps) {
-  const { data, error, isLoading } = useSWR(
-    `/api/markets/${marketId}/orders`,
-    fetcher,
-    { refreshInterval: 5000 }
+function ConnectionIndicator({ isConnected }: { readonly isConnected: boolean }) {
+  return (
+    <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+      <span
+        className={`inline-block size-2 rounded-full ${
+          isConnected ? "bg-emerald-500" : "bg-red-500"
+        }`}
+        title={isConnected ? "Connected" : "Disconnected"}
+      />
+      {isConnected ? "Live" : "Reconnecting…"}
+    </span>
   );
+}
+
+export function OrderBook({ marketId }: OrderBookProps) {
+  const { bids, asks, isConnected, isLoading, error } = useOrderBook(marketId);
 
   return (
     <div className="rounded-md border border-border overflow-hidden">
       <div className="px-4 py-3 border-b border-border bg-muted/30 flex items-center justify-between">
         <span className="text-sm font-medium">Order Book</span>
-        {!isLoading && !error && (
-          <span className="text-xs text-muted-foreground">Live · 5s</span>
-        )}
+        {!isLoading && !error && <ConnectionIndicator isConnected={isConnected} />}
       </div>
 
       {error && (
-        <p className="text-xs text-destructive px-4 py-3">
-          Failed to load order book.
-        </p>
+        <p className="text-xs text-destructive px-4 py-3">{error}</p>
       )}
 
       {isLoading && (
         <p className="text-xs text-muted-foreground px-4 py-3">Loading...</p>
       )}
 
-      {data && (
+      {!isLoading && !error && (
         <>
           <div className="grid grid-cols-2 divide-x divide-border">
             <div>
               <p className="px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wide border-b border-border">
                 Bids (YES)
               </p>
-              <PriceLadder levels={data.bids} side="bid" />
+              <PriceLadder levels={bids} side="bid" />
             </div>
             <div>
               <p className="px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wide border-b border-border">
                 Asks (YES)
               </p>
-              <PriceLadder levels={data.asks} side="ask" />
+              <PriceLadder levels={asks} side="ask" />
             </div>
           </div>
-          <DepthChart bids={data.bids} asks={data.asks} />
+          <DepthChart bids={bids} asks={asks} />
         </>
       )}
     </div>

@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { ChevronRight, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +24,9 @@ export function ProfilePageClient({ profile }: ProfilePageClientProps) {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [savingPassword, setSavingPassword] = useState(false);
+
+  const [publicPnl, setPublicPnl] = useState(profile.publicPnl ?? false);
+  const [savingVisibility, setSavingVisibility] = useState(false);
 
   async function handleUsernameSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -47,6 +52,26 @@ export function ProfilePageClient({ profile }: ProfilePageClientProps) {
     }
   }
 
+  async function handleVisibilityToggle() {
+    const next = !publicPnl;
+    setSavingVisibility(true);
+    try {
+      const res = await fetch("/api/profile/settings/visibility", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ publicPnl: next }),
+      });
+      if (!res.ok) {
+        toast.error(await getErrorMessage(res));
+        return;
+      }
+      setPublicPnl(next);
+      toast.success(next ? "Trading stats are now public" : "Trading stats are now private");
+    } finally {
+      setSavingVisibility(false);
+    }
+  }
+
   async function handlePasswordSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!currentPassword || !newPassword) return;
@@ -68,6 +93,8 @@ export function ProfilePageClient({ profile }: ProfilePageClientProps) {
       setSavingPassword(false);
     }
   }
+
+  const visibilityLabel = savingVisibility ? "Saving…" : publicPnl ? "Public" : "Private";
 
   return (
     <div className="space-y-6 max-w-lg">
@@ -110,6 +137,48 @@ export function ProfilePageClient({ profile }: ProfilePageClientProps) {
           </Button>
         </form>
       </div>
+
+      {/* Privacy settings */}
+      <div className="rounded-md border border-border overflow-hidden">
+        <div className="px-4 py-3 border-b border-border bg-muted/30">
+          <span className="text-sm font-medium">Privacy</span>
+        </div>
+        <div className="p-4 flex items-center justify-between gap-4">
+          <div className="space-y-0.5">
+            <p className="text-sm font-medium">Make trading stats public</p>
+            <p className="text-xs text-muted-foreground">
+              Show your P&L, win rate, and trade count on your{" "}
+              <Link
+                href={`/app/profile/${profile.username}`}
+                className="underline underline-offset-2"
+              >
+                public profile
+              </Link>
+              .
+            </p>
+          </div>
+          <Button
+            variant={publicPnl ? "default" : "outline"}
+            size="sm"
+            disabled={savingVisibility}
+            onClick={handleVisibilityToggle}
+          >
+            {visibilityLabel}
+          </Button>
+        </div>
+      </div>
+
+      {/* Responsible Gambling */}
+      <Link
+        href="/app/settings/responsible-gambling"
+        className="rounded-md border border-border overflow-hidden flex items-center justify-between px-4 py-3 hover:bg-accent/50 transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          <ShieldCheck className="size-4 text-muted-foreground" />
+          <span className="text-sm font-medium">Responsible Gambling</span>
+        </div>
+        <ChevronRight className="size-4 text-muted-foreground" />
+      </Link>
 
       {/* Change password */}
       <div className="rounded-md border border-border overflow-hidden">

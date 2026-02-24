@@ -6,7 +6,8 @@ export type OrderStatus =
   | "OPEN"
   | "PARTIALLY_FILLED"
   | "FILLED"
-  | "CANCELLED";
+  | "CANCELLED"
+  | "PENDING_TRIGGER";
 
 export interface Order {
   id: string;
@@ -19,6 +20,7 @@ export interface Order {
   filledQuantity: number;
   remainingQuantity: number;
   status: OrderStatus;
+  triggerPriceCents?: number;
   heldAmountCents: number;
   createdAt: string;
   updatedAt: string;

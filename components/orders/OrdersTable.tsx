@@ -30,6 +30,7 @@ const STATUS_VARIANTS: Record<
   PARTIALLY_FILLED: "secondary",
   FILLED: "outline",
   CANCELLED: "destructive",
+  PENDING_TRIGGER: "secondary",
 };
 
 function formatCents(cents: number): string {
@@ -143,6 +144,11 @@ export function OrdersTable({ orders, onCancelled }: OrdersTableProps) {
           {orders.map((order) => {
             const isActive =
               order.status === "OPEN" || order.status === "PARTIALLY_FILLED";
+            const isPendingTrigger = order.status === "PENDING_TRIGGER";
+            const isCancellable = isActive || isPendingTrigger;
+            let statusLabel = order.status as string;
+            if (order.status === "PARTIALLY_FILLED") statusLabel = "PARTIAL";
+            else if (order.status === "PENDING_TRIGGER") statusLabel = "PENDING TRIGGER";
             return (
               <tr key={order.id} className="hover:bg-muted/30 transition-colors">
                 <td className="px-4 py-3">
@@ -163,16 +169,19 @@ export function OrdersTable({ orders, onCancelled }: OrdersTableProps) {
                   </span>
                 </td>
                 <td className="px-4 py-3 hidden md:table-cell tabular-nums text-muted-foreground">
-                  {order.priceCents}¢
+                  <span>{order.priceCents}¢</span>
+                  {isPendingTrigger && order.triggerPriceCents !== undefined && (
+                    <span className="ml-1.5 text-xs text-amber-600 dark:text-amber-400">
+                      (trigger: {order.triggerPriceCents}¢)
+                    </span>
+                  )}
                 </td>
                 <td className="px-4 py-3 hidden md:table-cell tabular-nums text-muted-foreground">
                   {order.filledQuantity}/{order.quantity}
                 </td>
                 <td className="px-4 py-3">
                   <Badge variant={STATUS_VARIANTS[order.status]}>
-                    {order.status === "PARTIALLY_FILLED"
-                      ? "PARTIAL"
-                      : order.status}
+                    {statusLabel}
                   </Badge>
                 </td>
                 <td className="px-4 py-3 hidden lg:table-cell tabular-nums text-muted-foreground">
@@ -182,7 +191,7 @@ export function OrdersTable({ orders, onCancelled }: OrdersTableProps) {
                   {formatDate(order.createdAt)}
                 </td>
                 <td className="px-4 py-3 text-right">
-                  {isActive && (
+                  {isCancellable && (
                     <CancelButton
                       orderId={order.id}
                       onCancelled={onCancelled}
