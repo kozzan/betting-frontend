@@ -27,7 +27,7 @@ const GRADIENT_PLACEHOLDERS = [
 function gradientForId(id: string): string {
   let hash = 0;
   for (let i = 0; i < id.length; i++) {
-    hash = (hash * 31 + id.codePointAt(i) ?? 0) >>> 0;
+    hash = (hash * 31 + id.codePointAt(i)!) >>> 0;
   }
   return GRADIENT_PLACEHOLDERS[hash % GRADIENT_PLACEHOLDERS.length];
 }
