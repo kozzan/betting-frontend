@@ -20,11 +20,11 @@ export function MyMarketsTable({ markets: initial }: MyMarketsTableProps) {
     setMarkets((prev) => prev.filter((m) => m.id !== id));
     try {
       const res = await fetch(`/api/markets/${id}`, { method: "DELETE" });
-      if (!res.ok) {
+      if (res.ok) {
+        toast.success("Market deleted");
+      } else {
         toast.error(await getErrorMessage(res));
         setMarkets(snapshot);
-      } else {
-        toast.success("Market deleted");
       }
     } catch {
       toast.error("Failed to delete market");

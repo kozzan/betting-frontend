@@ -64,10 +64,10 @@ function buildAreaPath(points: PricePoint[]): string {
 }
 
 interface ChartContentProps {
-  isLoading: boolean;
-  error: Error | undefined;
-  data: PricePoint[] | undefined;
-  marketId: string;
+  readonly isLoading: boolean;
+  readonly error: Error | undefined;
+  readonly data: PricePoint[] | undefined;
+  readonly marketId: string;
 }
 
 function ChartContent({ isLoading, error, data, marketId }: ChartContentProps) {

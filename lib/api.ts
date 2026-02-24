@@ -7,7 +7,7 @@ type FetchOptions = RequestInit & {
 };
 
 async function getAccessToken(): Promise<string | null> {
-  if (typeof globalThis.window === "undefined") {
+  if (globalThis.window === undefined) {
     const { cookies } = await import("next/headers");
     const cookieStore = await cookies();
     return cookieStore.get("access_token")?.value ?? null;
@@ -27,7 +27,7 @@ async function handle401(
 ): Promise<Response> {
   const refreshed = await refreshTokens();
   if (!refreshed) {
-    if (typeof globalThis.window !== "undefined") {
+    if (globalThis.window !== undefined) {
       globalThis.window.location.href = "/login";
     }
     throw new Error("Session expired");
