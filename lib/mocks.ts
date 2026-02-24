@@ -213,14 +213,14 @@ export function getMockResponse(path: string): ApiResponse<unknown> | null {
   }
 
   // Order book — /api/v1/markets/:id/orders
-  const orderBookMatch = cleanPath.match(/^\/api\/v1\/markets\/([^/]+)\/orders$/);
+  const orderBookMatch = /^\/api\/v1\/markets\/([^/]+)\/orders$/.exec(cleanPath);
   if (orderBookMatch) {
     const book = ORDER_BOOKS[orderBookMatch[1]] ?? FALLBACK_ORDER_BOOK;
     return { data: book, meta: meta() };
   }
 
   // Market detail — /api/v1/markets/:id
-  const detailMatch = cleanPath.match(/^\/api\/v1\/markets\/([^/]+)$/);
+  const detailMatch = /^\/api\/v1\/markets\/([^/]+)$/.exec(cleanPath);
   if (detailMatch) {
     const market = MARKET_DETAILS[detailMatch[1]] ?? MARKET_DETAILS["mock-1"];
     return { data: market, meta: meta() };

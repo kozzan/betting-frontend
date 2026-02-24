@@ -94,7 +94,14 @@ export function ProfilePageClient({ profile }: ProfilePageClientProps) {
     }
   }
 
-  const visibilityLabel = savingVisibility ? "Saving…" : publicPnl ? "Public" : "Private";
+  let visibilityLabel: string;
+  if (savingVisibility) {
+    visibilityLabel = "Saving…";
+  } else if (publicPnl) {
+    visibilityLabel = "Public";
+  } else {
+    visibilityLabel = "Private";
+  }
 
   return (
     <div className="space-y-6 max-w-lg">

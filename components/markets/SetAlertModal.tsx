@@ -41,8 +41,8 @@ export function SetAlertModal({
         onClose();
       }
     };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    globalThis.addEventListener("keydown", handleKeyDown);
+    return () => globalThis.removeEventListener("keydown", handleKeyDown);
   }, [onClose]);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -64,11 +64,11 @@ export function SetAlertModal({
 
   return (
     /* Backdrop */
-    <div
-      role="dialog"
+    <dialog
+      open
       aria-modal="true"
       aria-label="Set Price Alert"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+      className="fixed inset-0 z-50 m-0 flex h-screen w-screen max-h-none max-w-none items-center justify-center border-0 bg-black/60 p-0"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -175,6 +175,6 @@ export function SetAlertModal({
           </div>
         </form>
       </div>
-    </div>
+    </dialog>
   );
 }

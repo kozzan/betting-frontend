@@ -241,7 +241,7 @@ export function MarketsTable({
         <div className="flex items-center justify-between text-sm">
           <span className="text-muted-foreground">
             {markets.totalElements} market
-            {markets.totalElements !== 1 ? "s" : ""}
+            {markets.totalElements === 1 ? "" : "s"}
           </span>
           <div className="flex items-center gap-2">
             <button

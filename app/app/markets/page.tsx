@@ -37,7 +37,7 @@ export default async function MarketsPage({
   const params = await searchParams;
   const status = (params.status as MarketStatus) ?? "OPEN";
   const category = params.category as MarketCategory | undefined;
-  const page = Math.max(0, parseInt(params.page ?? "0", 10));
+  const page = Math.max(0, Number.parseInt(params.page ?? "0", 10));
   const q = params.q?.trim();
 
   const cookieStore = await cookies();

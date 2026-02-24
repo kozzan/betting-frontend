@@ -13,7 +13,7 @@ export function InstallPrompt() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    if (typeof globalThis.window === 'undefined') return;
+    if (globalThis.window === undefined) return;
 
     const dismissed = localStorage.getItem(DISMISSED_KEY);
     if (dismissed) return;

@@ -183,7 +183,7 @@ export function MMPortalClient({ initialOrders }: MMPortalClientProps) {
                       {marketId}
                     </p>
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      {mktOrders.length} open order{mktOrders.length !== 1 ? "s" : ""} &middot;{" "}
+                      {mktOrders.length} open order{mktOrders.length === 1 ? "" : "s"} &middot;{" "}
                       {formatCents(exposure)} held
                     </p>
                   </div>
