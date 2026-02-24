@@ -54,7 +54,7 @@ export function PlaceOutcomeOrderPanel({
   const rawEstimate = action === "BUY" ? priceCents * qty : (100 - priceCents) * qty;
   const estimatedCents = validPrice && validQty ? rawEstimate : null;
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!validPrice || !validQty) return;
 

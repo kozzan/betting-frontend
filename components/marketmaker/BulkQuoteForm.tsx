@@ -69,7 +69,7 @@ export function BulkQuoteForm({ marketId, onSuccess }: BulkQuoteFormProps) {
     return null;
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const err = validate();
     if (err) {

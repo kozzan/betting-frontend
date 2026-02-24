@@ -42,7 +42,7 @@ export function DepositLimitsForm({ settings, onUpdate }: DepositLimitsFormProps
     return false;
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setSaving(true);
     try {

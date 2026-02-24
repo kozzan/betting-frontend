@@ -45,7 +45,7 @@ export function SetAlertModal({
     return () => globalThis.removeEventListener("keydown", handleKeyDown);
   }, [onClose]);
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!validThreshold) return;
     setSubmitting(true);
@@ -68,15 +68,18 @@ export function SetAlertModal({
       open
       aria-modal="true"
       aria-label="Set Price Alert"
-      className="fixed inset-0 z-50 m-0 flex h-screen w-screen max-h-none max-w-none items-center justify-center border-0 bg-black/60 p-0"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-      onKeyDown={(e) => {
-        if (e.key === "Escape") onClose();
-      }}
+      className="fixed inset-0 z-50 m-0 h-screen w-screen max-h-none max-w-none border-0 bg-transparent p-0"
     >
-      <div className="relative w-full max-w-sm mx-4 rounded-lg border border-border bg-background shadow-xl">
+      {/* Backdrop — interactive button so click-outside-to-close is accessible */}
+      <button
+        type="button"
+        aria-label="Close dialog"
+        className="fixed inset-0 h-full w-full cursor-default bg-black/60"
+        onClick={onClose}
+        tabIndex={-1}
+      />
+      <div className="relative z-10 flex h-full w-full items-center justify-center pointer-events-none">
+      <div className="relative w-full max-w-sm mx-4 rounded-lg border border-border bg-background shadow-xl pointer-events-auto">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-border">
           <h2 className="text-base font-semibold">Set Price Alert</h2>
@@ -174,6 +177,7 @@ export function SetAlertModal({
             </Button>
           </div>
         </form>
+      </div>
       </div>
     </dialog>
   );

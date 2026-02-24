@@ -28,7 +28,7 @@ export function ProfilePageClient({ profile }: ProfilePageClientProps) {
   const [publicPnl, setPublicPnl] = useState(profile.publicPnl ?? false);
   const [savingVisibility, setSavingVisibility] = useState(false);
 
-  async function handleUsernameSubmit(e: React.FormEvent) {
+  async function handleUsernameSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const trimmed = username.trim();
     if (!trimmed || trimmed === profile.username) return;
@@ -72,7 +72,7 @@ export function ProfilePageClient({ profile }: ProfilePageClientProps) {
     }
   }
 
-  async function handlePasswordSubmit(e: React.FormEvent) {
+  async function handlePasswordSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!currentPassword || !newPassword) return;
     setSavingPassword(true);
