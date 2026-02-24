@@ -5,15 +5,72 @@ import { cookies } from "next/headers";
 import { isTokenExpired, decodeJwtPayload } from "@/lib/auth";
 import { apiRequest } from "@/lib/api";
 import type { ApiResponse, Market } from "@/types/markets";
+import type { MarketOutcome } from "@/types/market-outcome";
 import { Badge } from "@/components/ui/badge";
 import { OrderBook } from "@/components/markets/OrderBook";
 import { MarketTradeSection } from "@/components/markets/MarketTradeSection";
+import { MultiOutcomeMarket } from "@/components/markets/MultiOutcomeMarket";
+import { OutcomeResultsDisplay } from "@/components/markets/OutcomeResultsDisplay";
 import { PriceHistoryChart } from "@/components/markets/PriceHistoryChart";
 import { MarketComments } from "@/components/markets/MarketComments";
 import { MarketNews } from "@/components/markets/MarketNews";
+import { JsonLd } from "@/components/JsonLd";
+import type { Metadata } from "next";
 
 interface PageProps {
   readonly params: Promise<{ id: string }>;
+}
+
+async function fetchMarket(id: string): Promise<Market | null> {
+  try {
+    const res = await apiRequest<ApiResponse<Market>>(`/api/v1/markets/${id}`);
+    return res.data;
+  } catch {
+    return null;
+  }
+}
+
+async function fetchOutcomes(marketId: string): Promise<MarketOutcome[]> {
+  try {
+    const res = await apiRequest<ApiResponse<MarketOutcome[]>>(
+      `/api/v1/markets/${marketId}/outcomes`
+    );
+    return res.data;
+  } catch {
+    return [];
+  }
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { id } = await params;
+  const market = await fetchMarket(id);
+
+  if (!market) {
+    return { title: "Market not found" };
+  }
+
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://betting.example.com";
+  const url = `${baseUrl}/app/markets/${market.id}`;
+  const description = market.description
+    ? market.description.slice(0, 160)
+    : `Trade YES/NO contracts on: ${market.title}`;
+
+  return {
+    title: market.title,
+    description,
+    openGraph: {
+      type: "website",
+      url,
+      title: market.title,
+      description,
+      images: [{ url: "/og-image.png", width: 1200, height: 630 }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: market.title,
+      description,
+    },
+  };
 }
 
 function statusVariant(
@@ -57,16 +114,37 @@ export default async function MarketDetailPage({ params }: PageProps) {
   const decoded = token ? decodeJwtPayload(token) : null;
   const currentUserId = typeof decoded?.sub === "string" ? decoded.sub : undefined;
 
-  let market: Market;
-  try {
-    const res = await apiRequest<ApiResponse<Market>>(`/api/v1/markets/${id}`);
-    market = res.data;
-  } catch {
-    notFound();
-  }
+  const market = await fetchMarket(id);
+  if (!market) notFound();
+
+  const isMultiOutcome = market.marketType === "MULTI_OUTCOME";
+  const outcomes = isMultiOutcome ? await fetchOutcomes(id) : [];
+
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://betting.example.com";
+  const marketJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Event",
+    name: market.title,
+    description: market.description || undefined,
+    url: `${baseUrl}/app/markets/${market.id}`,
+    endDate: market.closeTime,
+    eventStatus:
+      market.status === "OPEN"
+        ? "https://schema.org/EventScheduled"
+        : "https://schema.org/EventCancelled",
+    organizer: {
+      "@type": "Organization",
+      name: "PredictX",
+      url: baseUrl,
+    },
+    ...(market.resolvedOutcome && {
+      description: `Resolved: ${market.resolvedOutcome}. ${market.description || ""}`.trim(),
+    }),
+  };
 
   return (
     <div className="max-w-3xl">
+      <JsonLd data={marketJsonLd} />
       <Link
         href="/app/markets"
         className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-6"
@@ -142,23 +220,48 @@ export default async function MarketDetailPage({ params }: PageProps) {
                   Resolution source &rarr;
                 </a>
               )}
+              {market.oracleId && market.oracleUsername && (
+                <Link
+                  href={`/oracle/${market.oracleId}`}
+                  className="text-primary hover:underline"
+                >
+                  Resolved by: {market.oracleUsername} &rarr;
+                </Link>
+              )}
             </div>
           </div>
         )}
 
         {/* Trading panel + Order book */}
-        <div className="grid gap-4 lg:grid-cols-2">
-          {market.status === "OPEN" && (
-            <MarketTradeSection
+        {isMultiOutcome ? (
+          <>
+            <MultiOutcomeMarket
               marketId={market.id}
-              isAuthenticated={isAuthenticated}
-              fromPath={`/app/markets/${market.id}`}
+              outcomes={outcomes}
+              marketStatus={market.status}
             />
-          )}
-          <div className={market.status === "OPEN" ? "" : "lg:col-span-2"}>
-            <OrderBook marketId={market.id} />
+            {market.status === "SETTLED" && outcomes.length > 0 && (
+              <OutcomeResultsDisplay
+                outcomes={outcomes}
+                settlementOutcomeId={market.settlementOutcomeId}
+              />
+            )}
+          </>
+        ) : (
+          <div className="grid gap-4 lg:grid-cols-2">
+            {market.status === "OPEN" && (
+              <MarketTradeSection
+                marketId={market.id}
+                marketTitle={market.title}
+                isAuthenticated={isAuthenticated}
+                fromPath={`/app/markets/${market.id}`}
+              />
+            )}
+            <div className={market.status === "OPEN" ? "" : "lg:col-span-2"}>
+              <OrderBook marketId={market.id} />
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Price History */}
         <div className="space-y-2">

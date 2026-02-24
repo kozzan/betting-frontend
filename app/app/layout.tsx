@@ -13,10 +13,11 @@ export default async function AppLayout({
   const decoded = token ? decodeJwtPayload(token) : null;
   const rawUsername = typeof decoded?.username === "string" ? decoded.username : null;
   const username = rawUsername ?? (typeof decoded?.sub === "string" ? decoded.sub : undefined);
+  const role = typeof decoded?.role === "string" ? decoded.role : undefined;
 
   return (
     <div className="flex flex-col min-h-screen">
-      <NavBar username={username} />
+      <NavBar username={username} role={role} />
       <main className="flex-1 container mx-auto px-4 py-6">{children}</main>
       <Toaster />
     </div>

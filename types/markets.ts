@@ -1,4 +1,5 @@
 export type MarketStatus = "DRAFT" | "OPEN" | "CLOSED" | "SETTLED";
+export type MarketType = "BINARY" | "MULTI_OUTCOME";
 export type MarketCategory =
   | "CRYPTO"
   | "POLITICS"
@@ -26,13 +27,17 @@ export interface Market {
   description: string;
   category: MarketCategory;
   status: MarketStatus;
+  marketType?: MarketType;
   resolutionCriteria: string;
   resolutionSourceUrl?: string | null;
   closeTime: string;
   settlementTime: string | null;
   resolvedOutcome: Outcome | null;
+  settlementOutcomeId?: string | null;
   createdAt: string;
   updatedAt: string;
+  oracleId?: string | null;
+  oracleUsername?: string | null;
 }
 
 export interface PriceLevel {

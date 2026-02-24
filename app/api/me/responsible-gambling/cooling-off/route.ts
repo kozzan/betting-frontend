@@ -1,0 +1,6 @@
+import { type NextRequest } from "next/server";
+import { proxyPost } from "@/lib/proxy";
+
+export async function POST(req: NextRequest) {
+  return proxyPost("/api/v1/me/responsible-gambling/cooling-off", await req.text());
+}

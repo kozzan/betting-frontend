@@ -13,13 +13,20 @@ interface OrdersPageClientProps {
 const FILTER_TABS: { label: string; value: FilterValue }[] = [
   { label: "All", value: "ALL" },
   { label: "Active", value: "ACTIVE" },
+  { label: "Pending Trigger", value: "PENDING_TRIGGER" },
   { label: "Filled", value: "FILLED" },
   { label: "Cancelled", value: "CANCELLED" },
 ];
 
 function filterOrders(orders: Order[], filter: FilterValue): Order[] {
   if (filter === "ALL") return orders;
-  if (filter === "ACTIVE") return orders.filter((o) => o.status === "OPEN" || o.status === "PARTIALLY_FILLED");
+  if (filter === "ACTIVE")
+    return orders.filter(
+      (o) =>
+        o.status === "OPEN" ||
+        o.status === "PARTIALLY_FILLED" ||
+        o.status === "PENDING_TRIGGER"
+    );
   return orders.filter((o) => o.status === filter);
 }
 

@@ -1,4 +1,8 @@
+import { cookies } from "next/headers";
+import Link from "next/link";
+import { PlusCircle } from "lucide-react";
 import { apiRequest } from "@/lib/api";
+import { isTokenExpired } from "@/lib/auth";
 import type {
   ApiResponse,
   MarketCategory,
@@ -7,6 +11,8 @@ import type {
   PagedResponse,
 } from "@/types/markets";
 import { MarketsTable } from "@/components/markets/MarketsTable";
+import { Button } from "@/components/ui/button";
+import { ActivityFeed } from "@/components/ActivityFeed";
 
 interface SearchParams {
   status?: string;
@@ -34,6 +40,10 @@ export default async function MarketsPage({
   const page = Math.max(0, parseInt(params.page ?? "0", 10));
   const q = params.q?.trim();
 
+  const cookieStore = await cookies();
+  const token = cookieStore.get("access_token")?.value;
+  const isAuthenticated = !!token && !isTokenExpired(token);
+
   const query = new URLSearchParams({ status, page: String(page), size: "20" });
   if (category) query.set("category", category);
 
@@ -50,15 +60,33 @@ export default async function MarketsPage({
   }
 
   return (
-    <div>
-      <h1 className="text-2xl font-semibold mb-6">Markets</h1>
-      <MarketsTable
-        markets={markets}
-        currentStatus={status}
-        currentCategory={category}
-        currentPage={page}
-        currentSearch={q}
-      />
+    <div className="flex gap-6 items-start">
+      {/* Main content */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-semibold">Markets</h1>
+          {isAuthenticated && (
+            <Button asChild variant="outline" size="sm">
+              <Link href="/app/market-requests/new" className="flex items-center gap-1.5">
+                <PlusCircle className="h-4 w-4" />
+                Request a Market
+              </Link>
+            </Button>
+          )}
+        </div>
+        <MarketsTable
+          markets={markets}
+          currentStatus={status}
+          currentCategory={category}
+          currentPage={page}
+          currentSearch={q}
+        />
+      </div>
+
+      {/* Activity feed sidebar */}
+      <aside className="w-72 shrink-0 hidden lg:block">
+        <ActivityFeed />
+      </aside>
     </div>
   );
 }

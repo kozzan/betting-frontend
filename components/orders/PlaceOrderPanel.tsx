@@ -7,6 +7,7 @@ import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ConditionalOrderToggle } from "@/components/orders/ConditionalOrderToggle";
 import type { ApiResponse, WalletBalance, Order, OrderAction, OrderSide, OrderStatus } from "@/types/orders";
 
 interface PlaceOrderPanelProps {
@@ -38,6 +39,8 @@ export function PlaceOrderPanel({ marketId, initialSide = "YES", onClose }: Plac
   const [price, setPrice] = useState("");
   const [quantity, setQuantity] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [isConditional, setIsConditional] = useState(false);
+  const [triggerPriceCents, setTriggerPriceCents] = useState<number | null>(null);
 
   const { data: wallet, mutate: mutateWallet } = useSWR(
     "/api/wallet",
@@ -49,20 +52,36 @@ export function PlaceOrderPanel({ marketId, initialSide = "YES", onClose }: Plac
   const qty = Number.parseInt(quantity, 10);
   const validPrice = !Number.isNaN(priceCents) && priceCents >= 1 && priceCents <= 99;
   const validQty = !Number.isNaN(qty) && qty >= 1;
+  const validTrigger =
+    !isConditional ||
+    (triggerPriceCents !== null &&
+      triggerPriceCents >= 1 &&
+      triggerPriceCents <= 99);
 
   const rawEstimate = action === "BUY" ? priceCents * qty : (100 - priceCents) * qty;
   const estimatedCents = validPrice && validQty ? rawEstimate : null;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!validPrice || !validQty) return;
+    if (!validPrice || !validQty || !validTrigger) return;
 
     setSubmitting(true);
     try {
+      const payload: Record<string, unknown> = {
+        marketId,
+        side,
+        action,
+        priceCents,
+        quantity: qty,
+      };
+      if (isConditional && triggerPriceCents !== null) {
+        payload.triggerPriceCents = triggerPriceCents;
+      }
+
       const res = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ marketId, side, action, priceCents, quantity: qty }),
+        body: JSON.stringify(payload),
       });
 
       if (!res.ok) {
@@ -83,6 +102,8 @@ export function PlaceOrderPanel({ marketId, initialSide = "YES", onClose }: Plac
 
       setPrice("");
       setQuantity("");
+      setIsConditional(false);
+      setTriggerPriceCents(null);
       mutateWallet().catch(() => {});
     } catch {
       toast.error("Failed to place order. Please try again.");
@@ -204,6 +225,15 @@ export function PlaceOrderPanel({ marketId, initialSide = "YES", onClose }: Plac
             />
           </div>
 
+          {/* Conditional order toggle */}
+          <ConditionalOrderToggle
+            isConditional={isConditional}
+            triggerPriceCents={triggerPriceCents}
+            orderAction={action}
+            onConditionalChange={setIsConditional}
+            onTriggerPriceChange={setTriggerPriceCents}
+          />
+
           {/* Estimated cost */}
           {estimatedCents !== null && (
             <div className="flex items-center justify-between text-sm py-2 border-t border-border">
@@ -218,7 +248,7 @@ export function PlaceOrderPanel({ marketId, initialSide = "YES", onClose }: Plac
 
           <Button
             type="submit"
-            disabled={submitting || !validPrice || !validQty}
+            disabled={submitting || !validPrice || !validQty || !validTrigger}
             className="w-full"
           >
             {submitting ? "Placing…" : `${action} ${side}`}

@@ -5,27 +5,36 @@ import { usePathname, useRouter } from "next/navigation";
 import { LogOut, TrendingUp } from "lucide-react";
 import useSWR from "swr";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { cn } from "@/lib/utils";
 import { formatCents } from "@/lib/format";
 import { walletFetcher } from "@/lib/fetchers";
+import { NotificationBell } from "@/components/NotificationBell";
 
 const PUBLIC_NAV_LINKS = [
   { href: "/app/markets", label: "Markets" },
+  { href: "/app/leaderboard", label: "Leaderboard" },
+  { href: "/app/events", label: "Events" },
+  { href: "/how-it-works", label: "How it Works" },
 ];
 
 const PRIVATE_NAV_LINKS = [
   { href: "/app/orders", label: "Orders" },
   { href: "/app/portfolio", label: "Portfolio" },
+  { href: "/app/alerts", label: "Alerts" },
   { href: "/app/wallet", label: "Wallet" },
   { href: "/app/my-markets", label: "My Markets" },
+  { href: "/app/market-requests", label: "Requests" },
+  { href: "/app/watchlist", label: "Watchlist" },
   { href: "/app/profile", label: "Profile" },
 ];
 
 interface NavBarProps {
   readonly username?: string;
+  readonly role?: string;
 }
 
-export function NavBar({ username }: NavBarProps) {
+export function NavBar({ username, role }: NavBarProps) {
   const router = useRouter();
   const pathname = usePathname();
   const { data: wallet } = useSWR(username ? "/api/wallet" : null, walletFetcher, {
@@ -37,8 +46,12 @@ export function NavBar({ username }: NavBarProps) {
     router.push("/login");
   }
 
+  const roleLinks = role === "MARKET_MAKER"
+    ? [{ href: "/app/mm", label: "MM Portal" }]
+    : [];
+
   const navLinks = username
-    ? [...PUBLIC_NAV_LINKS, ...PRIVATE_NAV_LINKS]
+    ? [...PUBLIC_NAV_LINKS, ...PRIVATE_NAV_LINKS, ...roleLinks]
     : PUBLIC_NAV_LINKS;
 
   return (
@@ -71,6 +84,8 @@ export function NavBar({ username }: NavBarProps) {
             {formatCents(wallet.availableCents)}
           </span>
         )}
+        <ThemeToggle />
+        {username && <NotificationBell />}
         {username ? (
           <>
             <span className="text-sm text-muted-foreground hidden sm:block">{username}</span>
