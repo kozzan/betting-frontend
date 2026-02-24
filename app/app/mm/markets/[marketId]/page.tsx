@@ -53,7 +53,7 @@ export default async function MMMarketPage({ params }: PageProps) {
         </p>
       </div>
 
-      <MMMarketPageClient marketId={market.id} marketTitle={market.title} />
+      <MMMarketPageClient marketId={market.id} />
     </div>
   );
 }
