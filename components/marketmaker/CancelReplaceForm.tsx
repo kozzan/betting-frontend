@@ -32,7 +32,7 @@ export function CancelReplaceForm({
     (o) => o.status === "OPEN" || o.status === "PARTIALLY_FILLED"
   );
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
     if (!existingOrderId) {

@@ -44,7 +44,7 @@ function AmountForm({
   const valid = !Number.isNaN(dollars) && dollars > 0;
   const amountCents = valid ? Math.round(dollars * 100) : 0;
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!valid) return;
     setSubmitting(true);
