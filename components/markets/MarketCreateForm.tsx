@@ -90,6 +90,8 @@ export function MarketCreateForm() {
       }
       toast.success("Market submitted for review");
       router.push("/app/my-markets");
+    } catch {
+      toast.error("Something went wrong. Please try again.");
     } finally {
       setSubmitting(false);
     }
