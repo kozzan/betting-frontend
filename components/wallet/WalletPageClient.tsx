@@ -7,10 +7,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { formatCents, getErrorMessage } from "@/lib/format";
 import { walletFetcher } from "@/lib/fetchers";
-import type { Transaction } from "@/types/wallet";
+import type { Transaction, TransactionType } from "@/types/wallet";
 import type { ApiResponse, PagedResponse } from "@/types/markets";
+
+const PAGE_SIZE = 25;
 
 async function transactionsFetcher(url: string): Promise<PagedResponse<Transaction>> {
   const res = await fetch(url);
@@ -19,11 +28,21 @@ async function transactionsFetcher(url: string): Promise<PagedResponse<Transacti
   return json.data;
 }
 
-function BalanceCard({ label, value, dim }: { readonly label: string; readonly value: string; readonly dim?: boolean }) {
+function BalanceCard({
+  label,
+  value,
+  dim,
+}: {
+  readonly label: string;
+  readonly value: string;
+  readonly dim?: boolean;
+}) {
   return (
     <div className="rounded-md border border-border p-4">
       <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">{label}</p>
-      <p className={`text-2xl font-semibold tabular-nums${dim ? " text-muted-foreground" : ""}`}>{value}</p>
+      <p className={`text-2xl font-semibold tabular-nums${dim ? " text-muted-foreground" : ""}`}>
+        {value}
+      </p>
     </div>
   );
 }
@@ -90,17 +109,70 @@ function AmountForm({
   );
 }
 
+function buildTransactionUrl(
+  page: number,
+  typeFilter: string,
+  dateFrom: string,
+  dateTo: string
+): string {
+  const params = new URLSearchParams({
+    page: String(page),
+    size: String(PAGE_SIZE),
+    sort: "createdAt,desc",
+  });
+  if (typeFilter && typeFilter !== "ALL") params.set("type", typeFilter);
+  if (dateFrom) params.set("from", dateFrom);
+  if (dateTo) params.set("to", dateTo);
+  return `/api/wallet/transactions?${params.toString()}`;
+}
+
+const TX_TYPE_OPTIONS: { label: string; value: string }[] = [
+  { label: "All types", value: "ALL" },
+  { label: "Deposit", value: "DEPOSIT" },
+  { label: "Withdrawal", value: "WITHDRAWAL" },
+  { label: "Trade", value: "TRADE" },
+];
+
+function txTypeColor(type: TransactionType): string {
+  if (type === "DEPOSIT") return "text-emerald-600";
+  if (type === "WITHDRAWAL") return "text-red-600";
+  return "text-muted-foreground";
+}
+
+function txAmountPrefix(type: TransactionType): string {
+  if (type === "DEPOSIT") return "+";
+  if (type === "WITHDRAWAL") return "-";
+  return "";
+}
+
 export function WalletPageClient() {
   const { data: wallet, mutate: mutateWallet } = useSWR("/api/wallet", walletFetcher, {
     refreshInterval: 30_000,
   });
   const [txPage, setTxPage] = useState(0);
-  const { data: txData, mutate: mutateTx } = useSWR(
-    `/api/wallet/transactions?page=${txPage}&size=20&sort=createdAt,desc`,
-    transactionsFetcher
-  );
+  const [typeFilter, setTypeFilter] = useState("ALL");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
 
-  async function handleFundsAction(endpoint: string, successMsg: string, amountCents: number) {
+  const txUrl = buildTransactionUrl(txPage, typeFilter, dateFrom, dateTo);
+  const { data: txData, mutate: mutateTx } = useSWR(txUrl, transactionsFetcher);
+
+  function handleFilterChange(newType: string) {
+    setTypeFilter(newType);
+    setTxPage(0);
+  }
+
+  function handleDateChange(field: "from" | "to", value: string) {
+    if (field === "from") setDateFrom(value);
+    else setDateTo(value);
+    setTxPage(0);
+  }
+
+  async function handleFundsAction(
+    endpoint: string,
+    successMsg: string,
+    amountCents: number
+  ) {
     const res = await fetch(endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -124,9 +196,19 @@ export function WalletPageClient() {
     <div className="space-y-6">
       {/* Balance cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <BalanceCard label="Available" value={wallet ? formatCents(wallet.availableCents) : "—"} />
-        <BalanceCard label="Held" value={wallet ? formatCents(wallet.heldCents) : "—"} dim />
-        <BalanceCard label="Total" value={wallet ? formatCents(wallet.balanceCents) : "—"} />
+        <BalanceCard
+          label="Available"
+          value={wallet ? formatCents(wallet.availableCents) : "—"}
+        />
+        <BalanceCard
+          label="Held"
+          value={wallet ? formatCents(wallet.heldCents) : "—"}
+          dim
+        />
+        <BalanceCard
+          label="Total"
+          value={wallet ? formatCents(wallet.balanceCents) : "—"}
+        />
       </div>
 
       {/* Deposit / Withdraw tabs */}
@@ -152,11 +234,43 @@ export function WalletPageClient() {
 
       {/* Transaction history */}
       <div className="rounded-md border border-border overflow-hidden">
-        <div className="px-4 py-3 border-b border-border bg-muted/30">
+        <div className="px-4 py-3 border-b border-border bg-muted/30 flex flex-wrap items-center gap-3">
           <span className="text-sm font-medium">Transaction History</span>
+          <div className="flex flex-wrap items-center gap-2 ml-auto">
+            {/* Type filter */}
+            <Select value={typeFilter} onValueChange={handleFilterChange}>
+              <SelectTrigger className="h-8 w-36 text-xs">
+                <SelectValue placeholder="All types" />
+              </SelectTrigger>
+              <SelectContent>
+                {TX_TYPE_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value} className="text-xs">
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {/* Date range */}
+            <Input
+              type="date"
+              value={dateFrom}
+              onChange={(e) => handleDateChange("from", e.target.value)}
+              className="h-8 w-36 text-xs"
+              aria-label="From date"
+            />
+            <Input
+              type="date"
+              value={dateTo}
+              onChange={(e) => handleDateChange("to", e.target.value)}
+              className="h-8 w-36 text-xs"
+              aria-label="To date"
+            />
+          </div>
         </div>
         {!txData || txData.content.length === 0 ? (
-          <p className="py-12 text-center text-muted-foreground text-sm">No transactions yet.</p>
+          <p className="py-12 text-center text-muted-foreground text-sm">
+            No transactions found.
+          </p>
         ) : (
           <>
             <table className="w-full text-sm" aria-label="Transaction history">
@@ -164,7 +278,9 @@ export function WalletPageClient() {
                 <tr>
                   <th className="text-left px-4 py-3 font-medium">Type</th>
                   <th className="text-left px-4 py-3 font-medium">Amount</th>
-                  <th className="text-left px-4 py-3 font-medium hidden sm:table-cell">Date</th>
+                  <th className="text-left px-4 py-3 font-medium hidden sm:table-cell">
+                    Date
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -172,16 +288,14 @@ export function WalletPageClient() {
                   <tr key={tx.id} className="hover:bg-muted/30 transition-colors">
                     <td className="px-4 py-3">
                       <span
-                        className={`text-xs font-medium uppercase tracking-wide ${
-                          tx.type === "DEPOSIT" ? "text-emerald-600" : "text-red-600"
-                        }`}
+                        className={`text-xs font-medium uppercase tracking-wide ${txTypeColor(tx.type)}`}
                       >
-                        {tx.type === "DEPOSIT" ? "+ " : "− "}
+                        {tx.type === "DEPOSIT" ? "+ " : tx.type === "WITHDRAWAL" ? "− " : ""}
                         {tx.type}
                       </span>
                     </td>
                     <td className="px-4 py-3 tabular-nums font-medium">
-                      {tx.type === "DEPOSIT" ? "+" : "-"}
+                      {txAmountPrefix(tx.type)}
                       {formatCents(tx.amountCents)}
                     </td>
                     <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">
