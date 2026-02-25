@@ -1,10 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import useSWR from "swr";
 import { Badge } from "@/components/ui/badge";
 import type { Position } from "@/types/positions";
 import type { ApiResponse, OrderBook } from "@/types/markets";
+import type { PositionSortKey } from "@/types/portfolio";
 import { formatCents } from "@/lib/format";
 
 interface PositionsTableProps {
@@ -54,7 +56,62 @@ function UnrealisedPnl({
   );
 }
 
+type SortDir = "asc" | "desc";
+
+function sortPositions(
+  positions: Position[],
+  key: PositionSortKey,
+  dir: SortDir
+): Position[] {
+  const sorted = [...positions].sort((a, b) => {
+    if (key === "pnl") return a.realisedPnlCents - b.realisedPnlCents;
+    if (key === "market") return a.marketTitle.localeCompare(b.marketTitle);
+    if (key === "date") return a.createdAt.localeCompare(b.createdAt);
+    return 0;
+  });
+  return dir === "desc" ? sorted.reverse() : sorted;
+}
+
+function SortButton({
+  label,
+  sortKey,
+  activeKey,
+  dir,
+  onClick,
+}: {
+  readonly label: string;
+  readonly sortKey: PositionSortKey;
+  readonly activeKey: PositionSortKey;
+  readonly dir: SortDir;
+  readonly onClick: (key: PositionSortKey) => void;
+}) {
+  const isActive = sortKey === activeKey;
+  return (
+    <button
+      onClick={() => onClick(sortKey)}
+      className="flex items-center gap-1 font-medium hover:text-foreground transition-colors"
+    >
+      {label}
+      {isActive && (
+        <span className="text-xs opacity-60">{dir === "asc" ? "↑" : "↓"}</span>
+      )}
+    </button>
+  );
+}
+
 export function PositionsTable({ positions }: PositionsTableProps) {
+  const [sortKey, setSortKey] = useState<PositionSortKey>("date");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
+
+  function handleSort(key: PositionSortKey) {
+    if (key === sortKey) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir("desc");
+    }
+  }
+
   if (positions.length === 0) {
     return (
       <p className="py-12 text-center text-muted-foreground text-sm">
@@ -63,12 +120,22 @@ export function PositionsTable({ positions }: PositionsTableProps) {
     );
   }
 
+  const sorted = sortPositions(positions, sortKey, sortDir);
+
   return (
     <div className="rounded-md border border-border overflow-hidden">
       <table className="w-full text-sm">
         <thead className="bg-muted/50">
           <tr>
-            <th className="text-left px-4 py-3 font-medium">Market</th>
+            <th className="text-left px-4 py-3 text-muted-foreground">
+              <SortButton
+                label="Market"
+                sortKey="market"
+                activeKey={sortKey}
+                dir={sortDir}
+                onClick={handleSort}
+              />
+            </th>
             <th className="text-left px-4 py-3 font-medium">Side</th>
             <th className="text-left px-4 py-3 font-medium hidden sm:table-cell">
               Qty
@@ -79,11 +146,28 @@ export function PositionsTable({ positions }: PositionsTableProps) {
             <th className="text-left px-4 py-3 font-medium hidden md:table-cell">
               Unrealised P&L
             </th>
-            <th className="text-left px-4 py-3 font-medium">Realised P&L</th>
+            <th className="text-left px-4 py-3 text-muted-foreground">
+              <SortButton
+                label="Realised P&L"
+                sortKey="pnl"
+                activeKey={sortKey}
+                dir={sortDir}
+                onClick={handleSort}
+              />
+            </th>
+            <th className="text-left px-4 py-3 text-muted-foreground hidden lg:table-cell">
+              <SortButton
+                label="Date"
+                sortKey="date"
+                activeKey={sortKey}
+                dir={sortDir}
+                onClick={handleSort}
+              />
+            </th>
           </tr>
         </thead>
         <tbody className="divide-y divide-border">
-          {positions.map((pos) => {
+          {sorted.map((pos) => {
             let realisedColor = "text-muted-foreground";
             if (pos.realisedPnlCents > 0) realisedColor = "text-emerald-600";
             else if (pos.realisedPnlCents < 0) realisedColor = "text-red-600";
@@ -116,6 +200,9 @@ export function PositionsTable({ positions }: PositionsTableProps) {
                   <span className={`tabular-nums font-medium ${realisedColor}`}>
                     {formatCents(pos.realisedPnlCents, true)}
                   </span>
+                </td>
+                <td className="px-4 py-3 hidden lg:table-cell text-muted-foreground">
+                  {new Date(pos.createdAt).toLocaleDateString()}
                 </td>
               </tr>
             );
