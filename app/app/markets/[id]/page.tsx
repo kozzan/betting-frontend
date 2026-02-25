@@ -14,6 +14,7 @@ import { OutcomeResultsDisplay } from "@/components/markets/OutcomeResultsDispla
 import { PriceHistoryChart } from "@/components/markets/PriceHistoryChart";
 import { MarketComments } from "@/components/markets/MarketComments";
 import { MarketNews } from "@/components/markets/MarketNews";
+import { MarketStatsBar } from "@/components/markets/MarketStatsBar";
 import { JsonLd } from "@/components/JsonLd";
 import type { Metadata } from "next";
 
@@ -167,6 +168,9 @@ export default async function MarketDetailPage({ params }: PageProps) {
           </div>
           <h1 className="text-2xl font-semibold leading-snug">{market.title}</h1>
         </div>
+
+        {/* Stats bar */}
+        <MarketStatsBar marketId={market.id} />
 
         {/* Meta */}
         <div className="grid grid-cols-2 gap-4 text-sm">

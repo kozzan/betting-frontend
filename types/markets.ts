@@ -88,3 +88,10 @@ export interface NewsArticle {
   url: string;
   publishedAt: string; // ISO 8601
 }
+
+export interface MarketStats {
+  volume24hCents: number;
+  openInterestCents: number;
+  yesProbabilityPct: number;
+  numTraders: number;
+}
