@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderHook, waitFor, act } from "@testing-library/react";
 import type { OrderBook } from "@/types/markets";
 
@@ -63,6 +63,14 @@ function wsTokenResponse(token: string | null) {
 }
 
 describe("useOrderBook", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it("starts in loading state", () => {
     vi.mocked(global.fetch).mockReturnValue(new Promise(() => {}));
     const { result } = renderHook(() => useOrderBook("m1"));
@@ -153,5 +161,43 @@ describe("useOrderBook", () => {
 
     unmount();
     expect(fakeClient.deactivate).toHaveBeenCalled();
+  });
+
+  it("polls REST when no WS token is available", async () => {
+    const updatedBook: OrderBook = {
+      marketId: "m1",
+      bids: [{ priceCents: 55, totalQuantity: 10 }],
+      asks: [{ priceCents: 70, totalQuantity: 7 }],
+    };
+
+    vi.mocked(global.fetch)
+      .mockResolvedValueOnce(bookResponse(initialBook))  // initial REST load
+      .mockResolvedValueOnce(wsTokenResponse(null))       // no WS token → start polling
+      .mockResolvedValueOnce(bookResponse(updatedBook));  // first poll tick
+
+    const { result } = renderHook(() => useOrderBook("m1"));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    // Advance timer to trigger first poll
+    await act(async () => {
+      vi.advanceTimersByTime(5_000);
+      await Promise.resolve();
+    });
+
+    await waitFor(() => expect(result.current.bids[0].priceCents).toBe(55));
+    expect(result.current.asks[0].priceCents).toBe(70);
+  });
+
+  it("stops polling on unmount when no WS token", async () => {
+    vi.mocked(global.fetch)
+      .mockResolvedValueOnce(bookResponse(initialBook))
+      .mockResolvedValueOnce(wsTokenResponse(null));
+
+    const clearIntervalSpy = vi.spyOn(globalThis, "clearInterval");
+    const { result, unmount } = renderHook(() => useOrderBook("m1"));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    unmount();
+    expect(clearIntervalSpy).toHaveBeenCalled();
   });
 });

@@ -5,6 +5,8 @@ import type { Client, StompSubscription } from "@stomp/stompjs";
 import type { OrderBook, PriceLevel } from "@/types/markets";
 import { createStompClient } from "@/lib/websocket";
 
+const REST_POLL_INTERVAL_MS = 5_000;
+
 interface OrderBookState {
   bids: PriceLevel[];
   asks: PriceLevel[];
@@ -21,7 +23,7 @@ const INITIAL_STATE: OrderBookState = {
   error: null,
 };
 
-async function fetchInitialOrderBook(marketId: string): Promise<OrderBook> {
+async function fetchOrderBook(marketId: string): Promise<OrderBook> {
   const res = await fetch(`/api/markets/${marketId}/orders`);
   if (!res.ok) throw new Error("Failed to load order book");
   const json = await res.json();
@@ -43,6 +45,37 @@ export function useOrderBook(marketId: string): OrderBookState {
   const [state, setState] = useState<OrderBookState>(INITIAL_STATE);
   const clientRef = useRef<Client | null>(null);
   const subscriptionRef = useRef<StompSubscription | null>(null);
+  const isConnectedRef = useRef(false);
+  const pollTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const stopPolling = useCallback(() => {
+    if (pollTimerRef.current !== null) {
+      clearInterval(pollTimerRef.current);
+      pollTimerRef.current = null;
+    }
+  }, []);
+
+  const startPolling = useCallback(
+    (id: string) => {
+      stopPolling();
+      pollTimerRef.current = setInterval(() => {
+        if (isConnectedRef.current) {
+          stopPolling();
+          return;
+        }
+        fetchOrderBook(id).then((book) => {
+          setState((prev) => ({
+            ...prev,
+            bids: book.bids,
+            asks: book.asks,
+          }));
+        }).catch(() => {
+          // polling error — keep existing data
+        });
+      }, REST_POLL_INTERVAL_MS);
+    },
+    [stopPolling]
+  );
 
   const handleOrderBookMessage = useCallback(
     (message: { body: string }) => {
@@ -61,30 +94,37 @@ export function useOrderBook(marketId: string): OrderBookState {
   );
 
   const connect = useCallback(
-    async (token: string) => {
+    async (token: string, id: string) => {
       const client = createStompClient(token);
 
       client.onConnect = () => {
+        isConnectedRef.current = true;
+        stopPolling();
         setState((prev) => ({ ...prev, isConnected: true }));
 
         subscriptionRef.current = client.subscribe(
-          `/topic/markets/${marketId}/orderbook`,
+          `/topic/markets/${id}/orderbook`,
           handleOrderBookMessage
         );
       };
 
       client.onDisconnect = () => {
+        isConnectedRef.current = false;
         setState((prev) => ({ ...prev, isConnected: false }));
+        // Fall back to REST polling when WS disconnects
+        startPolling(id);
       };
 
       client.onStompError = () => {
+        isConnectedRef.current = false;
         setState((prev) => ({ ...prev, isConnected: false }));
+        startPolling(id);
       };
 
       clientRef.current = client;
       client.activate();
     },
-    [marketId, handleOrderBookMessage]
+    [handleOrderBookMessage, startPolling, stopPolling]
   );
 
   useEffect(() => {
@@ -92,10 +132,11 @@ export function useOrderBook(marketId: string): OrderBookState {
 
     async function init() {
       setState(INITIAL_STATE);
+      isConnectedRef.current = false;
 
       // 1. Fetch initial snapshot via REST
       try {
-        const book = await fetchInitialOrderBook(marketId);
+        const book = await fetchOrderBook(marketId);
         if (!cancelled) {
           setState((prev) => ({
             ...prev,
@@ -115,10 +156,15 @@ export function useOrderBook(marketId: string): OrderBookState {
         return;
       }
 
-      // 2. Connect WebSocket for live updates
+      // 2. Attempt WebSocket connection; fall back to REST polling if unavailable
       const token = await fetchWsToken();
-      if (token && !cancelled) {
-        await connect(token);
+      if (cancelled) return;
+
+      if (token) {
+        await connect(token, marketId);
+      } else {
+        // No WS token — poll REST for live updates
+        startPolling(marketId);
       }
     }
 
@@ -126,6 +172,7 @@ export function useOrderBook(marketId: string): OrderBookState {
 
     return () => {
       cancelled = true;
+      stopPolling();
       if (subscriptionRef.current) {
         subscriptionRef.current.unsubscribe();
         subscriptionRef.current = null;
@@ -135,7 +182,7 @@ export function useOrderBook(marketId: string): OrderBookState {
         clientRef.current = null;
       }
     };
-  }, [marketId, connect]);
+  }, [marketId, connect, startPolling, stopPolling]);
 
   return state;
 }
