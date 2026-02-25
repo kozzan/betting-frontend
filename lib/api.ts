@@ -1,4 +1,32 @@
 import { getMockResponse, USE_MOCK_DATA } from "@/lib/mocks";
+import type { ApiResponse, PagedResponse } from "@/types/markets";
+import type { Order, OrderFilters } from "@/types/orders";
+
+export interface GetOrdersParams {
+  page?: number;
+  limit?: number;
+  filters?: OrderFilters;
+  sort?: string;
+}
+
+export async function getOrders(
+  params: GetOrdersParams = {}
+): Promise<PagedResponse<Order>> {
+  const { page = 0, limit = 50, filters = {}, sort = "createdAt,desc" } = params;
+  const qs = new URLSearchParams({
+    page: String(page),
+    size: String(limit),
+    sort,
+  });
+  if (filters.status) qs.set("status", filters.status);
+  if (filters.action) qs.set("action", filters.action);
+  if (filters.from) qs.set("from", filters.from);
+  if (filters.to) qs.set("to", filters.to);
+  const res = await apiRequest<ApiResponse<PagedResponse<Order>>>(
+    `/api/v1/orders?${qs.toString()}`
+  );
+  return res.data;
+}
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
 
